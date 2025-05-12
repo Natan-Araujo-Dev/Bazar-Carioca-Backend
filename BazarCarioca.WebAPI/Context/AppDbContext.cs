@@ -8,7 +8,7 @@ namespace BazarCarioca.WebAPI.Context
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
-
+        //teste
         public DbSet<Shopkeeper>? Shopkeepers { get; set; }
         public DbSet<Store>? Stores { get; set; }
         public DbSet<Service>? Services { get; set; }
