@@ -7,11 +7,12 @@ namespace BazarCarioca.WebAPI.Models
     {
         public int Id { get; set; }
 
+        public Store Store { get; set; }
+
+        public int StoreId { get; set; }
+
         public string Name { get; set; }
 
         public decimal? AveragePrice { get; set; }
-
-        public Store Store { get; set; }
-
     }
 }

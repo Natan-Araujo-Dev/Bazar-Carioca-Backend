@@ -6,13 +6,17 @@ namespace BazarCarioca.WebAPI.Models
     {
         public int Id { get; set; }
 
+        public Shopkeeper? Shopkeeper { get; set; }
+
+        public int ShopkeeperId { get; set; }
+
         public string Name { get; set; }
 
         public string? Description { get; set; }
 
         public string? ImageUrl { get; set; }
 
-        public int? CellphoneNumber { get; set; }
+        public string? CellphoneNumber { get; set; }
 
         // Endereço - Antigo "Address"
         public string? Neighborhood { get; set; }
@@ -30,7 +34,5 @@ namespace BazarCarioca.WebAPI.Models
         public ICollection<Service>? Services { get; set; }
 
         public ICollection<ProductType>? ProductTypes { get; set; }
-
-        public Shopkeeper Shopkeeper { get; set; }
     }
 }

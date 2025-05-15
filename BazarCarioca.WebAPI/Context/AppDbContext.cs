@@ -8,9 +8,8 @@ namespace BazarCarioca.WebAPI.Context
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
-        //teste 2
         public DbSet<Shopkeeper>? Shopkeepers { get; set; }
-        public DbSet<Store>? Stores { get; set; }
+        public DbSet<Store>? stores { get; set; }
         public DbSet<Service>? Services { get; set; }
         public DbSet<ProductType>? ProductTypes { get; set; }
         public DbSet<Product>? Products { get; set; }
@@ -37,9 +36,12 @@ namespace BazarCarioca.WebAPI.Context
                 .HasMaxLength(50);
 
             // ========== Relacionamento ==========
+
+            // com o filho
             modelBuilder.Entity<Shopkeeper>()
                 .HasMany(sk => sk.Stores)
-                .WithOne(s => s.Shopkeeper)
+                .WithOne(st => st.Shopkeeper)
+                .HasForeignKey(st => st.ShopkeeperId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -81,38 +83,40 @@ namespace BazarCarioca.WebAPI.Context
 
             modelBuilder.Entity<Store>().Property(s => s.Number)
                 .IsRequired(false)
-                .HasMaxLength(5);
+                .HasPrecision(5);
 
             modelBuilder.Entity<Store>().Property(s => s.OpeningTime)
                 .IsRequired(false)
-                .HasMaxLength(4);
+                .HasPrecision(4);
 
             modelBuilder.Entity<Store>().Property(s => s.ClosingTime)
                 .IsRequired(false)
-                .HasMaxLength(4);
+                .HasPrecision(4);
 
             // ========== Relacionamento ==========
-            
-            modelBuilder.Entity<Store>()
-                .HasMany(s => s.Services)
-                .WithOne(serv => serv.Store)
-                .HasForeignKey("StoreId")
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.Cascade);
 
+            //com o pai
             modelBuilder.Entity<Store>()
-                .HasMany(s => s.ProductTypes)
-                .WithOne(pt => pt.Store)
-                .HasForeignKey("StoreId")
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Store>()
-                .HasOne(s => s.Shopkeeper)
+                .HasOne(st => st.Shopkeeper)
                 .WithMany(sk => sk.Stores)
-                // shadow FK
-                .HasForeignKey("ShopkeeperId")    
+                .HasForeignKey(st => st.ShopkeeperId)
                 .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // com o filho
+            modelBuilder.Entity<Store>()
+                .HasMany(st => st.Services)
+                .WithOne(serv => serv.Store)
+                .HasForeignKey(serv => serv.StoreId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // com o filho
+            modelBuilder.Entity<Store>()
+                .HasMany(st => st.ProductTypes)
+                .WithOne(pt => pt.Store)
+                .HasForeignKey(pt => pt.StoreId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
 
             #endregion
@@ -132,11 +136,11 @@ namespace BazarCarioca.WebAPI.Context
                 .HasPrecision(8, 2);
 
             // ========== Relacionamento ==========
+            //Com o pai
             modelBuilder.Entity<Service>()
                 .HasOne(serv => serv.Store)
-                .WithMany(serv => serv.Services)
-                // Shadow FK
-                .HasForeignKey("StoreId")
+                .WithMany(st => st.Services)
+                .HasForeignKey(serv => serv.StoreId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -153,18 +157,21 @@ namespace BazarCarioca.WebAPI.Context
                 .HasMaxLength(80);
 
             // ========== Relacionamento ==========
-            modelBuilder.Entity<ProductType>()
-                .HasMany(pt => pt.Products)
-                .WithOne(p => p.ProductType)
-                .HasForeignKey("ProductTypeId")
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade);
 
+            // com o pai
             modelBuilder.Entity<ProductType>()
                 .HasOne(pt => pt.Store)
                 .WithMany(s => s.ProductTypes)
-                .HasForeignKey("StoreId")
+                .HasForeignKey(pt => pt.StoreId)
                 .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // com o filho
+            modelBuilder.Entity<ProductType>()
+                .HasMany(pt => pt.Products)
+                .WithOne(p => p.ProductType)
+                .HasForeignKey(p => p.ProductTypeId)
+                .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
             #endregion
@@ -189,7 +196,7 @@ namespace BazarCarioca.WebAPI.Context
 
             modelBuilder.Entity<Product>().Property(p => p.Stock)
                 .IsRequired(false)
-                .HasMaxLength(5);
+                .HasPrecision(5);
 
             modelBuilder.Entity<Product>().Property(p => p.Description)
                 .IsRequired(false)
@@ -199,7 +206,7 @@ namespace BazarCarioca.WebAPI.Context
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.ProductType)
                 .WithMany(pt => pt.Products)
-                .HasForeignKey("ProductTypeId")
+                .HasForeignKey(p => p.ProductTypeId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
