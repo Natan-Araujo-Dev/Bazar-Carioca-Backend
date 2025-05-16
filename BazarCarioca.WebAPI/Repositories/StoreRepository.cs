@@ -1,39 +1,14 @@
 ﻿using BazarCarioca.WebAPI.Context;
 using BazarCarioca.WebAPI.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
 namespace BazarCarioca.WebAPI.Repositories
 {
-    public class StoreRepository : IStoreRepository
+    public class StoreRepository : Repository<Store>, IStoreRepository
     {
-        private readonly AppDbContext DataBase;
-        public StoreRepository(AppDbContext _DataBase)
+        public StoreRepository(AppDbContext _DataBase) : base(_DataBase)
         {
-            DataBase = _DataBase;
-        }
-
-        public IEnumerable<Store> Get()
-        {
-            var stores = DataBase.stores
-                .ToList();
-
-            if (stores is null)
-                throw new ArgumentException(nameof(stores));
-
-            return stores;
-        }
-
-        public Store GetById(int Id)
-        {
-            var store = DataBase.stores
-                 .Find(Id);
-
-            if (store is null)
-                throw new ArgumentException(nameof(store));
-
-            return store;
         }
 
         public IEnumerable<Store> GetByShopkeeperId(int Id)
@@ -48,53 +23,21 @@ namespace BazarCarioca.WebAPI.Repositories
             return stores;
         }
 
-        public Store Create(Store store)
-        {
-            if (store is null)
-                throw new ArgumentNullException(nameof(store));
+        //public Store PartialUpdate(int id, JsonPatchDocument<Store> patchDoc)
+        //{
+        //    if (patchDoc == null)
+        //        throw new ArgumentNullException("Store vazia recebida.");
 
-            DataBase.stores.Add(store);
-            DataBase.SaveChanges();
+        //    var store = DataBase.stores
+        //        .Find(id);
+        //    if (store == null)
+        //        throw new KeyNotFoundException($"Loja com Id = {id} não encontrada.");
 
-            return store;
-        }
+        //    patchDoc.ApplyTo(store);
 
-        public Store Update(Store store)
-        {
-            if (store == null)
-                throw new ArgumentNullException("Nenhuma loja foi passada na header.");
+        //    DataBase.SaveChanges();
 
-            var newStore = DataBase.stores.Find(store.Id);
-
-            if (newStore == null)
-                throw new ArgumentException($"Loja com Id = {store.Id} não encontrada.");
-
-            newStore.Name = store.Name;
-            newStore.Description = store.Description;
-            newStore.ImageUrl = store.ImageUrl;
-            newStore.CellphoneNumber = store.CellphoneNumber;
-            newStore.Neighborhood = store.Neighborhood;
-            newStore.Street = store.Street;
-            newStore.Number = store.Number;
-            newStore.OpeningTime = store.OpeningTime;
-            newStore.ClosingTime = store.ClosingTime;
-
-            DataBase.SaveChanges();
-            return newStore;
-        }
-
-        public bool DeleteById(int Id)
-        {
-            var store = DataBase.stores
-                 .Find(Id);
-
-            if (store is null)
-                throw new ArgumentException(nameof(Store));
-
-            DataBase.stores.Remove(store);
-            DataBase.SaveChanges();
-
-            return true;
-        }
+        //    return store;
+        //}
     }
 }

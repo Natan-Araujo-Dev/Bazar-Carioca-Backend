@@ -1,8 +1,6 @@
 using BazarCarioca.WebAPI.Context;
 using BazarCarioca.WebAPI.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
-using System;
 
 
 
@@ -13,8 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 #region services
 
 
-
 builder.Services.AddControllers();
+
+builder.Services
+    .AddControllers()
+    .AddNewtonsoftJson();
 
 /* caso vá mudar o banco de dados, adicione mais uma string como a de baixo
 * (lembrando de mudar também em:
@@ -27,7 +28,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 
 // Registrando os Repositories
+builder.Services.AddScoped<IShopkeeperRepository, ShopkeeperRepository>();
 builder.Services.AddScoped<IStoreRepository, StoreRepository>();
+builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+builder.Services.AddScoped<IProductTypeRepository, ProductTypeRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
 // Necessário para o Post
 builder.Services.AddControllers()
@@ -36,6 +41,9 @@ builder.Services.AddControllers()
         opts.JsonSerializerOptions.Converters.Add(
             new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
+
+
+//builder.Services.AddControllers().AddNewtonsoftJson();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

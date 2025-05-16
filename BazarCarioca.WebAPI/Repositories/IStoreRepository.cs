@@ -2,18 +2,8 @@
 
 namespace BazarCarioca.WebAPI.Repositories
 {
-    public interface IStoreRepository
+    public interface IStoreRepository : IRepository<Store>
     {
-        IEnumerable<Store> Get();
-
-        Store GetById(int Id);
-
         IEnumerable<Store> GetByShopkeeperId(int Id);
-
-        Store Create(Store store);
-
-        Store Update(Store store);
-
-        bool DeleteById(int Id);
     }
 }

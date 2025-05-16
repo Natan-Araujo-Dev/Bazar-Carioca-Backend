@@ -1,96 +1,61 @@
-﻿using BazarCarioca.WebAPI.Context;
-using BazarCarioca.WebAPI.Extensions;
-using BazarCarioca.WebAPI.Models;
-using Microsoft.AspNetCore.Http;
+﻿using BazarCarioca.WebAPI.Models;
+using BazarCarioca.WebAPI.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace BazarCarioca.WebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("BazarCarioca/Produtos")]
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        public ProductsController(AppDbContext context)
+        private readonly IProductRepository Repository;
+
+        public ProductsController(IProductRepository repository)
         {
-            _context = context;
+            Repository = repository;
         }
 
-        //Tudo foi comentado pois houve alteração no relacionamento entre entidades pelo FluentApi
+        [HttpGet]
+        public ActionResult<IEnumerable<Product>> Get()
+        {
+            var products = Repository.Get().ToList();
 
-        //[HttpGet("/Produtos/Todos")]
-        //public async Task<ActionResult<List<Product>>> GetAsync()
-        //{
-        //    var Products = await _context.Products
-        //        .AsNoTracking()
-        //        .ToListAsync();
+            return Ok(products);
+        }
 
-        //    if (Products.IsNullOrEmpty())
-        //        return NotFound("Nenhum produto no nosso banco de dados.");
+        [HttpGet("{Id:int}")]
+        public ActionResult<Product> GetById(int Id)
+        {
+            var products = Repository.GetById(Id);
 
-        //    return Ok(Products);
-        //}
+            return Ok(products);
+        }
 
-        //[HttpGet("/Produtos/{Id:int}")]
-        //public async Task<ActionResult<Product>> GetByIdAsync(int Id)
-        //{
-        //    var Product = await _context.Products
-        //        .FindAsync(Id);
+        [HttpPost("Criar")]
+        public ActionResult<Product> CreateStore([FromBody] Product product)
+        {
+            Repository.Add(product);
 
-        //    if (Product == null)
-        //        return NotFound($"Nenhum produto com esse ID ({Id}) no nosso banco de dados.");
+            return Ok(product);
+        }
 
-        //    return Ok(Product);
-        //}
+        [HttpPut("Atualizar/{Id:int}")]
+        public ActionResult<Product> FullUpdate(int Id, [FromBody] Product product)
+        {
+            product.Id = Id;
+            Repository.Update(Id, product);
 
-        //[HttpGet("/Produtos/Busca/{Busca}")]
-        //public async Task<ActionResult<IEnumerable<Product>>> GetBySearchASync(string Busca)
-        //{
-        //    bool IsNumber = int.TryParse(Busca, out int Id);
+            return Ok(product);
+        }
 
-        //    var Products = await _context.Products
-        //        .AsNoTracking()
-        //        .Where(p => (IsNumber && p.Id == Id)
-        //                 || p.Name.Contains(Busca))
-        //        .ToListAsync();
+        [HttpDelete("Apagar/{Id:int}")]
+        public ActionResult<bool> DeleteStore(int Id)
+        {
+            var product = Repository.GetById(Id);
 
-        //    if (Products.IsNullOrEmpty())
-        //        return NotFound($"Nenhum produto com o termo ''{Busca}'' no nosso banco de dados.");
+            Repository.Delete(Id);
 
-        //    return Ok(Products);
-        //}
-
-        //[HttpGet("/Produtos/Categoria/{Id:int}")]
-        //public async Task<ActionResult<List<Product>>> GetByCategoryIdAsync(int Id)
-        //{
-        //    var Products = await _context.Products
-        //        .AsNoTracking()
-        //        .Where(p =>
-        //            p.ProductTypeId == Id)
-        //        .ToListAsync();
-
-        //    if (Products.IsNullOrEmpty())
-        //        return NotFound("Categoria sem produto ou categoria não encontrada.");
-
-        //    return Ok(Products);
-        //}
-
-        //[HttpGet("/Produtos/Loja/{Id:int}")]
-        //public async Task<ActionResult<List<Product>>> GetByStoreIdAsync(int Id)
-        //{
-        //    var Products = await _context.ProductTypes
-        //        .Where(pt =>
-        //            pt.StoreId == Id)
-        //        .SelectMany(pt =>
-        //            pt.Products)
-        //        .AsNoTracking()
-        //        .ToListAsync();
-
-        //    if (Products.IsNullOrEmpty())
-        //        return NotFound("Loja sem produto ou loja não encontrada.");
-
-        //    return Ok(Products);
-        //}
+            return Ok($"Produto com id = {Id} apagado.");
+        }
     }
 }

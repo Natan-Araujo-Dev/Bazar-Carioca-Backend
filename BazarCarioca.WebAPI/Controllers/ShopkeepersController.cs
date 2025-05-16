@@ -1,4 +1,5 @@
 ﻿using BazarCarioca.WebAPI.Context;
+using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -6,27 +7,56 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BazarCarioca.WebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("BazarCarioca/Lojistas")]
     [ApiController]
     public class ShopkeepersController : ControllerBase
     {
+        private readonly IShopkeeperRepository Repository;
+        public ShopkeepersController(IShopkeeperRepository _Repository) 
+        {
+            Repository = _Repository;
+        }
 
-        // Código feito para testar o mapping
-        //[HttpDelete("DeletaLojista/{id:int}")]
-        //public async Task<IActionResult> DeleteShopkeeper(int id)
-        //{
-        //    var shopkeeper = await DataBase.Shopkeepers
-        //        .FindAsync(id);
+        [HttpGet]
+        public ActionResult<IEnumerable<Shopkeeper>> Get()
+        {
+            var shopkeepers = Repository.Get().ToList();
 
-        //    if (shopkeeper == null)
-        //    {
-        //        return NotFound("Nenhum lojista bro");
-        //    }
+            return Ok(shopkeepers);
+        }
 
-        //    DataBase.Shopkeepers.Remove(shopkeeper);
-        //    await DataBase.SaveChangesAsync();
+        [HttpGet("{Id:int}")]
+        public ActionResult<Shopkeeper> GetById(int Id)
+        {
+            var shopkeeper = Repository.GetById(Id);
 
-        //    return Ok("Deletou mermo hein. Agora confere lá no BDD");
-        //}
+            return Ok(shopkeeper);
+        }
+
+        [HttpPost("Criar")]
+        public ActionResult<Shopkeeper> Create(Shopkeeper shopkeeper)
+        {
+            Repository.Add(shopkeeper);
+
+            return Ok(shopkeeper);
+        }
+
+        [HttpPut("Atualizar/{Id:int}")]
+        public ActionResult Update(int Id, [FromBody] Shopkeeper shopkeeper)
+        {
+            Repository.Update(Id, shopkeeper);
+
+            return Ok(shopkeeper);
+        }
+
+        [HttpDelete("Apagar/{Id:int}")]
+        public ActionResult<bool> Delete(int Id)
+        {
+            var shopkeeper = Repository.GetById(Id);
+
+            Repository.Delete(Id);
+
+            return Ok($"Lojista com id = {Id} apagado(/a).");
+        }
     }
 }

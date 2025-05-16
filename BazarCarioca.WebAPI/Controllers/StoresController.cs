@@ -1,11 +1,10 @@
 ﻿using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BazarCarioca.WebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("BazarCarioca/Lojas")]
     [ApiController]
     public class StoresController : ControllerBase
     {
@@ -16,23 +15,23 @@ namespace BazarCarioca.WebAPI.Controllers
             Repository = repository;
         }
 
-        [HttpGet("Lojas")]
-        public ActionResult<IEnumerable<Store>> GetStores()
+        [HttpGet]
+        public ActionResult<IEnumerable<Store>> Get()
         {
-            var stores = Repository.Get();
+            var stores = Repository.Get().ToList();
 
             return Ok(stores);
         }
 
-        [HttpGet("Lojas/{Id:int}")]
-        public ActionResult<Store> GetStoreById(int Id)
+        [HttpGet("{Id:int}")]
+        public ActionResult<Store> GetById(int Id)
         {
             var store = Repository.GetById(Id);
 
             return Ok(store);
         }
 
-        [HttpGet("Lojas/Lojista/{Id:int}")]
+        [HttpGet("Lojista/{Id:int}")]
         public ActionResult<IEnumerable<Store>> GetStoresByShopkeeperId(int Id)
         {
             var stores = Repository.GetByShopkeeperId(Id);
@@ -40,26 +39,42 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(stores);
         }
 
-        [HttpPost("Lojas/Criar")]
-        public ActionResult<Store> CreateStore([FromBody] Store Store)
+        [HttpPost("Criar")]
+        public ActionResult<Store> CreateStore([FromBody] Store store)
         {
-            var store = Repository.Create(Store);
+            Repository.Add(store);
 
             return Ok(store);
         }
 
-        [HttpPut("Lojas/Atualizar/{Id:int}")]
-        public ActionResult<Store> UpdateStore(int Id, [FromBody] Store Store)
+        // Com erro. Devo investigar
+        [HttpPut("Atualizar/{Id:int}")]
+        public ActionResult<Store> FullUpdate(int Id, [FromBody] Store store)
         {
-            Store.Id = Id;
-            var updated = Repository.Update(Store);
-            return Ok(updated);
+            store.Id = Id;
+            Repository.Update(Id, store);
+
+            return Ok(store);
         }
 
-        [HttpDelete("Lojas/Apagar/{Id:int}")]
+        // Implementar isso no Repository
+        //[HttpPatch("Atualizar/{id:int}")]
+        //public ActionResult<Store> PatchStore(int id, [FromBody] JsonPatchDocument<Store> patchDoc)
+        //{
+        //    if (patchDoc == null)
+        //        return BadRequest();
+
+        //    var store = Repository.PartialUpdate(id, patchDoc);
+
+        //    return store;
+        //}
+
+        [HttpDelete("Apagar/{Id:int}")]
         public ActionResult<bool> DeleteStore(int Id)
         {
-            var Store = Repository.DeleteById(Id);
+            var store = Repository.GetById(Id);
+
+            Repository.Delete(Id);
 
             return Ok($"Loja com id = {Id} apagada.");
         }
