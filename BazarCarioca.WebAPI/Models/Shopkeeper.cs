@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace BazarCarioca.WebAPI.Models
 {
@@ -16,7 +17,7 @@ namespace BazarCarioca.WebAPI.Models
         public string Password { get; set; }
 
 
-
+        [JsonIgnore]
         public ICollection<Store>? Stores { get; set; }
     }
 }

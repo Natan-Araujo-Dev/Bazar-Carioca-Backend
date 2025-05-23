@@ -42,7 +42,6 @@ namespace BazarCarioca.WebAPI.Context
                 .HasMany(sk => sk.Stores)
                 .WithOne(st => st.Shopkeeper)
                 .HasForeignKey(st => st.ShopkeeperId)
-                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
 
             #endregion
@@ -100,7 +99,6 @@ namespace BazarCarioca.WebAPI.Context
                 .HasOne(st => st.Shopkeeper)
                 .WithMany(sk => sk.Stores)
                 .HasForeignKey(st => st.ShopkeeperId)
-                .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
             // com o filho
@@ -108,7 +106,6 @@ namespace BazarCarioca.WebAPI.Context
                 .HasMany(st => st.Services)
                 .WithOne(serv => serv.Store)
                 .HasForeignKey(serv => serv.StoreId)
-                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // com o filho
@@ -116,7 +113,6 @@ namespace BazarCarioca.WebAPI.Context
                 .HasMany(st => st.ProductTypes)
                 .WithOne(pt => pt.Store)
                 .HasForeignKey(pt => pt.StoreId)
-                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
 
             #endregion
@@ -141,7 +137,6 @@ namespace BazarCarioca.WebAPI.Context
                 .HasOne(serv => serv.Store)
                 .WithMany(st => st.Services)
                 .HasForeignKey(serv => serv.StoreId)
-                .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
             #endregion
@@ -163,7 +158,6 @@ namespace BazarCarioca.WebAPI.Context
                 .HasOne(pt => pt.Store)
                 .WithMany(s => s.ProductTypes)
                 .HasForeignKey(pt => pt.StoreId)
-                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // com o filho
@@ -171,7 +165,6 @@ namespace BazarCarioca.WebAPI.Context
                 .HasMany(pt => pt.Products)
                 .WithOne(p => p.ProductType)
                 .HasForeignKey(p => p.ProductTypeId)
-                .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
             #endregion
@@ -207,7 +200,6 @@ namespace BazarCarioca.WebAPI.Context
                 .HasOne(p => p.ProductType)
                 .WithMany(pt => pt.Products)
                 .HasForeignKey(p => p.ProductTypeId)
-                .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
             #endregion

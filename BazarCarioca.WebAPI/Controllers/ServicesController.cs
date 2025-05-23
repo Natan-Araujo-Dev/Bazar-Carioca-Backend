@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BazarCarioca.WebAPI.Controllers
 {
-    [Route("BazarCarioca/Serviços")]
+    [Route("BazarCarioca/Servicos")]
     [ApiController]
     public class ServicesController : ControllerBase
     {

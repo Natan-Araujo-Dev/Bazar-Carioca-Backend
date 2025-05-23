@@ -26,9 +26,9 @@ namespace BazarCarioca.WebAPI.Controllers
         [HttpGet("{Id:int}")]
         public ActionResult<Product> GetById(int Id)
         {
-            var products = Repository.GetById(Id);
+            var product = Repository.GetById(Id);
 
-            return Ok(products);
+            return Ok(product);
         }
 
         [HttpPost("Criar")]

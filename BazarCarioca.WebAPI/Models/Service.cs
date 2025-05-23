@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace BazarCarioca.WebAPI.Models
 {
@@ -7,7 +8,8 @@ namespace BazarCarioca.WebAPI.Models
     {
         public int Id { get; set; }
 
-        public Store Store { get; set; }
+        [JsonIgnore]
+        public Store? Store { get; set; }
 
         public int StoreId { get; set; }
 

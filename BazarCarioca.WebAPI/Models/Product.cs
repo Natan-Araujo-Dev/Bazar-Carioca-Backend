@@ -1,5 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace BazarCarioca.WebAPI.Models
 {
@@ -7,7 +9,8 @@ namespace BazarCarioca.WebAPI.Models
     {
         public int Id { get; set; }
 
-        public ProductType ProductType { get; set; }
+        [JsonIgnore]
+        public ProductType? ProductType { get; set; }
 
         public int ProductTypeId { get; set; }
 
