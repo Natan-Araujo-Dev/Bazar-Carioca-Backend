@@ -1,6 +1,8 @@
 using BazarCarioca.WebAPI.Context;
 using BazarCarioca.WebAPI.Repositories;
+using BazarCarioca.WebAPI.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 
 
@@ -27,6 +29,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         ServerVersion.AutoDetect(MySqlConnection))
 );
 
+// Registrando o serviço do AWS
+builder.Services.AddScoped<IS3Service, S3Service>();
+
 // Registrando os Repositories
 builder.Services.AddScoped<IShopkeeperRepository, ShopkeeperRepository>();
 builder.Services.AddScoped<IStoreRepository, StoreRepository>();
@@ -40,6 +45,9 @@ builder.Services.AddControllers()
     {
         opts.JsonSerializerOptions.Converters.Add(
             new System.Text.Json.Serialization.JsonStringEnumConverter());
+        
+        // caso dê o possível erro de cíclos
+        //opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 
 
