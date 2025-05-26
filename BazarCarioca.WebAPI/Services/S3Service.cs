@@ -1,6 +1,8 @@
 ﻿using Amazon;
 using Amazon.S3;
+using Amazon.S3.Model;
 using Amazon.S3.Transfer;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 
 namespace BazarCarioca.WebAPI.Services
@@ -23,11 +25,11 @@ namespace BazarCarioca.WebAPI.Services
             _BucketName = awsOptions["BucketName"];
         }
 
-        public async Task<string> UploadFileAsync(IFormFile file)
+        public async Task<string> UploadImageAsync(string entityDirectory, IFormFile file)
         {
             using var stream = file.OpenReadStream();
 
-            var key = file.FileName;
+            var key = $"images/{entityDirectory}/{file.FileName}";
 
             var uploadRequest = new TransferUtilityUploadRequest
             {
@@ -42,6 +44,22 @@ namespace BazarCarioca.WebAPI.Services
 
             var region = _S3Client.Config.RegionEndpoint.SystemName;
             return $"https://{_BucketName}.s3.{region}.amazonaws.com/{key}";
+        }
+
+        public async Task<bool> DeleteFileAsync(string fileUrl)
+        {
+            // retorna apenas o que vem após "amazonaws.com/". Ou seja: a key para amazon utilizar
+            var key = fileUrl.Substring(fileUrl.IndexOf("amazonaws.com/") + "amazonaws.com/".Length);
+
+            var deleteRequest = new DeleteObjectRequest
+            {
+                BucketName = _BucketName,
+                Key = key
+            };
+
+            await _S3Client.DeleteObjectAsync(deleteRequest);
+
+            return true;
         }
     }
 }

@@ -38,12 +38,11 @@ namespace BazarCarioca.WebAPI.Controllers
         }
 
         [HttpPost("Criar")]
-        public async Task<ActionResult<Product>> Create([FromForm] CreateProductDTO DTO)
+        public async Task<ActionResult<Product>> Create([FromForm] ProductCreateDTO DTO)
         {
             var fileUrl = "";
-
             if (DTO.File != null)
-                fileUrl = await WebService.UploadFileAsync(DTO.File);
+                fileUrl = await WebService.UploadImageAsync("products", DTO.File);
 
             var product = new Product
             {
@@ -65,17 +64,23 @@ namespace BazarCarioca.WebAPI.Controllers
         {
             var fileUrl = "";
 
-            if (DTO.RemoveImage || DTO.File == null)
+            var amazonProduct = await Repository.GetByIdAsync(Id);
+
+            if (DTO.RemoveImage)
             {
+                await WebService.DeleteFileAsync(amazonProduct.ImageUrl);
+
                 fileUrl = "";
             }
             else
             {
-                fileUrl = await WebService.UploadFileAsync(DTO.File);
+                await WebService.DeleteFileAsync(amazonProduct.ImageUrl);
+
+                fileUrl = await WebService.UploadImageAsync("products", DTO.File);
                 fileUrl = fileUrl.ToString();
             }
 
-            var product = new Product
+            var newProduct = new Product
             {
                 Id = Id,
                 ProductTypeId = DTO.ProductTypeId,
@@ -86,14 +91,18 @@ namespace BazarCarioca.WebAPI.Controllers
                 Description = DTO.Description
             };
 
-            await Repository.UpdateAsync(Id, product);
+            await Repository.UpdateAsync(Id, newProduct);
 
-            return Ok(product);
+            return Ok(newProduct);
         }
 
         [HttpDelete("Apagar/{Id:int}")]
         public async Task<ActionResult<bool>> DeleteStore(int Id)
         {
+            var product = await Repository.GetByIdAsync(Id);
+            var fileUrl = product.ImageUrl;
+            await WebService.DeleteFileAsync(fileUrl);
+
             await Repository.DeleteAsync(Id);
 
             return Ok($"Produto com id = {Id} apagado.");

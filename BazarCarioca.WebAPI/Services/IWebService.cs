@@ -2,6 +2,7 @@
 {
     public interface IWebService
     {
-        Task<string> UploadFileAsync(IFormFile file);
+        Task<string> UploadImageAsync(string entityDirectory, IFormFile file);
+        Task<bool> DeleteFileAsync(string fileUrl);
     }
 }

@@ -23,7 +23,9 @@ namespace BazarCarioca.WebAPI.Repositories
 
         public async Task<T> GetByIdAsync(int Id)
         {
-            var entity = await DataBase.Set<T>().FindAsync(Id);
+            var entity = await DataBase.Set<T>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == Id);
 
             return entity;
         }

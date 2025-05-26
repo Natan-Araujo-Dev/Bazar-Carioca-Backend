@@ -1,6 +1,6 @@
 ﻿namespace BazarCarioca.WebAPI.DTOs
 {
-    public class CreateProductDTO
+    public class ProductCreateDTO
     {
         public int ProductTypeId { get; set; }
 
