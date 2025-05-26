@@ -14,37 +14,40 @@ namespace BazarCarioca.WebAPI.Repositories
 
 
 
-        public IQueryable<T> Get()
+        public async Task<IQueryable<T>> GetAsync()
         {
             var entity = DataBase.Set<T>().AsNoTracking();
 
+            return await Task.FromResult(entity);
+        }
+
+        public async Task<T> GetByIdAsync(int Id)
+        {
+            var entity = await DataBase.Set<T>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == Id);
+
             return entity;
         }
 
-        public T GetById(int Id)
+        public async Task AddAsync(T entity)
         {
-            var entity = DataBase.Set<T>().Find(Id);
-
-            return entity;
+            await DataBase.Set<T>().AddAsync(entity);
+            await DataBase.SaveChangesAsync();
         }
 
-        public void Add(T entity)
-        {
-            DataBase.Set<T>().Add(entity);
-            DataBase.SaveChanges();
-        }
-
-        public void Update(int Id, T entity)
+        public async Task UpdateAsync(int Id, T entity)
         {
             DataBase.Entry(entity).State = EntityState.Modified;
             DataBase.Set<T>().Update(entity);
-            DataBase.SaveChanges();
+            await DataBase.SaveChangesAsync();
         }
 
-        public void Delete(int Id)
+        public async Task DeleteAsync(int Id)
         {
-            DataBase.Set<T>().Remove(DataBase.Set<T>().Find(Id));
-            DataBase.SaveChanges();
+            var entity = await DataBase.Set<T>().FindAsync(Id);
+            DataBase.Set<T>().Remove(entity);
+            await DataBase.SaveChangesAsync();
         }
     }
 }

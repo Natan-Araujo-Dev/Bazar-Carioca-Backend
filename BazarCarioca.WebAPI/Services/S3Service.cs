@@ -1,11 +1,13 @@
 ﻿using Amazon;
 using Amazon.S3;
+using Amazon.S3.Model;
 using Amazon.S3.Transfer;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 
 namespace BazarCarioca.WebAPI.Services
 {
-    public class S3Service : IS3Service
+    public class S3Service : IWebService, IS3Service
     {
         private readonly IAmazonS3 _S3Client;
         private readonly string _BucketName;
@@ -23,19 +25,41 @@ namespace BazarCarioca.WebAPI.Services
             _BucketName = awsOptions["BucketName"];
         }
 
-        public async Task UploadFileAsync(IFormFile file)
+        public async Task<string> UploadImageAsync(string entityDirectory, IFormFile file)
         {
             using var stream = file.OpenReadStream();
+
+            var key = $"images/{entityDirectory}/{file.FileName}";
+
             var uploadRequest = new TransferUtilityUploadRequest
             {
                 InputStream = stream,
-                Key = file.FileName,
+                Key = key,
                 BucketName = _BucketName,
                 ContentType = file.ContentType
             };
 
             var transferUtility = new TransferUtility(_S3Client);
             await transferUtility.UploadAsync(uploadRequest);
+
+            var region = _S3Client.Config.RegionEndpoint.SystemName;
+            return $"https://{_BucketName}.s3.{region}.amazonaws.com/{key}";
+        }
+
+        public async Task<bool> DeleteFileAsync(string fileUrl)
+        {
+            // retorna apenas o que vem após "amazonaws.com/". Ou seja: a key para amazon utilizar
+            var key = fileUrl.Substring(fileUrl.IndexOf("amazonaws.com/") + "amazonaws.com/".Length);
+
+            var deleteRequest = new DeleteObjectRequest
+            {
+                BucketName = _BucketName,
+                Key = key
+            };
+
+            await _S3Client.DeleteObjectAsync(deleteRequest);
+
+            return true;
         }
     }
 }

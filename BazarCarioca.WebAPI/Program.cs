@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -29,8 +28,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         ServerVersion.AutoDetect(MySqlConnection))
 );
 
-// Registrando o serviço do AWS
-builder.Services.AddScoped<IS3Service, S3Service>();
+// Registrando o web service
+builder.Services.AddScoped<IWebService, S3Service>();
 
 // Registrando os Repositories
 builder.Services.AddScoped<IShopkeeperRepository, ShopkeeperRepository>();
@@ -40,18 +39,15 @@ builder.Services.AddScoped<IProductTypeRepository, ProductTypeRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
 // Necessário para o Post
-builder.Services.AddControllers()
-    .AddJsonOptions(opts =>
-    {
-        opts.JsonSerializerOptions.Converters.Add(
-            new System.Text.Json.Serialization.JsonStringEnumConverter());
-        
-        // caso dê o possível erro de cíclos
-        //opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    });
+builder.Services.AddControllers().AddJsonOptions(opts =>
+{
+    opts.JsonSerializerOptions.Converters.Add(
+        new System.Text.Json.Serialization.JsonStringEnumConverter()
+    );
+});
+// Necessário para o Patch
+builder.Services.AddControllers().AddNewtonsoftJson();
 
-
-//builder.Services.AddControllers().AddNewtonsoftJson();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

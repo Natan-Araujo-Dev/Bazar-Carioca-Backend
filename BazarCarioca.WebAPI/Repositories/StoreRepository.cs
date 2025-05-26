@@ -3,6 +3,8 @@ using BazarCarioca.WebAPI.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
 namespace BazarCarioca.WebAPI.Repositories
 {
     public class StoreRepository : Repository<Store>, IStoreRepository
@@ -11,33 +13,16 @@ namespace BazarCarioca.WebAPI.Repositories
         {
         }
 
-        public IEnumerable<Store> GetByShopkeeperId(int Id)
+        public async Task<IEnumerable<Store>> GetByShopkeeperIdAsync(int Id)
         {
-            var stores = DataBase.stores
+            var stores = await DataBase.stores
                  .Where(s =>  s.ShopkeeperId == Id)
-                 .ToList();
+                 .ToListAsync();
 
             if (stores is null)
                 throw new ArgumentException(nameof(Store));
 
             return stores;
         }
-
-        //public Store PartialUpdate(int id, JsonPatchDocument<Store> patchDoc)
-        //{
-        //    if (patchDoc == null)
-        //        throw new ArgumentNullException("Store vazia recebida.");
-
-        //    var store = DataBase.stores
-        //        .Find(id);
-        //    if (store == null)
-        //        throw new KeyNotFoundException($"Loja com Id = {id} não encontrada.");
-
-        //    patchDoc.ApplyTo(store);
-
-        //    DataBase.SaveChanges();
-
-        //    return store;
-        //}
     }
 }

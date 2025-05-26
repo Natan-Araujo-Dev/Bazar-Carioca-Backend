@@ -18,43 +18,41 @@ namespace BazarCarioca.WebAPI.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Shopkeeper>> Get()
+        public async Task<ActionResult<IEnumerable<Shopkeeper>>> Get()
         {
-            var shopkeepers = Repository.Get().ToList();
+            var shopkeepers = await Repository.GetAsync();
 
             return Ok(shopkeepers);
         }
 
         [HttpGet("{Id:int}")]
-        public ActionResult<Shopkeeper> GetById(int Id)
+        public async Task<ActionResult<Shopkeeper>> GetById(int Id)
         {
-            var shopkeeper = Repository.GetById(Id);
+            var shopkeeper = await Repository.GetByIdAsync(Id);
 
             return Ok(shopkeeper);
         }
 
         [HttpPost("Criar")]
-        public ActionResult<Shopkeeper> Create(Shopkeeper shopkeeper)
+        public async Task<ActionResult<Shopkeeper>> Create(Shopkeeper shopkeeper)
         {
-            Repository.Add(shopkeeper);
+            await Repository.AddAsync(shopkeeper);
 
             return Ok(shopkeeper);
         }
 
         [HttpPut("Atualizar/{Id:int}")]
-        public ActionResult Update(int Id, [FromBody] Shopkeeper shopkeeper)
+        public async Task<ActionResult> Update(int Id, [FromBody] Shopkeeper shopkeeper)
         {
-            Repository.Update(Id, shopkeeper);
+            await Repository.UpdateAsync(Id, shopkeeper);
 
             return Ok(shopkeeper);
         }
 
         [HttpDelete("Apagar/{Id:int}")]
-        public ActionResult<bool> Delete(int Id)
+        public async Task<ActionResult<bool>> Delete(int Id)
         {
-            var shopkeeper = Repository.GetById(Id);
-
-            Repository.Delete(Id);
+            await Repository.DeleteAsync(Id);
 
             return Ok($"Lojista com id = {Id} apagado(/a).");
         }
