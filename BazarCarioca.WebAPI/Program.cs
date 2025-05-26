@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -29,8 +28,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         ServerVersion.AutoDetect(MySqlConnection))
 );
 
-// Registrando o serviço do AWS
-builder.Services.AddScoped<IS3Service, S3Service>();
+// Registrando o web service
+builder.Services.AddScoped<IWebService, S3Service>();
 
 // Registrando os Repositories
 builder.Services.AddScoped<IShopkeeperRepository, ShopkeeperRepository>();

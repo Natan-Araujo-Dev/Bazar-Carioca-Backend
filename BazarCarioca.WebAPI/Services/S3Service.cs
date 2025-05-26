@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace BazarCarioca.WebAPI.Services
 {
-    public class S3Service : IS3Service
+    public class S3Service : IWebService, IS3Service
     {
         private readonly IAmazonS3 _S3Client;
         private readonly string _BucketName;
@@ -23,19 +23,25 @@ namespace BazarCarioca.WebAPI.Services
             _BucketName = awsOptions["BucketName"];
         }
 
-        public async Task UploadFileAsync(IFormFile file)
+        public async Task<string> UploadFileAsync(IFormFile file)
         {
             using var stream = file.OpenReadStream();
+
+            var key = file.FileName;
+
             var uploadRequest = new TransferUtilityUploadRequest
             {
                 InputStream = stream,
-                Key = file.FileName,
+                Key = key,
                 BucketName = _BucketName,
                 ContentType = file.ContentType
             };
 
             var transferUtility = new TransferUtility(_S3Client);
             await transferUtility.UploadAsync(uploadRequest);
+
+            var region = _S3Client.Config.RegionEndpoint.SystemName;
+            return $"https://{_BucketName}.s3.{region}.amazonaws.com/{key}";
         }
     }
 }

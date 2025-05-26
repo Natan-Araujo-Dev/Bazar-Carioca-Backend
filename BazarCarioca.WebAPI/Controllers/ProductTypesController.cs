@@ -16,44 +16,42 @@ namespace BazarCarioca.WebAPI.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<ProductType>> Get()
+        public async Task<ActionResult<IEnumerable<ProductType>>> Get()
         {
-            var productTypes = Repository.Get().ToList();
+            var productTypes = await Repository.GetAsync();
 
             return Ok(productTypes);
         }
 
         [HttpGet("{Id:int}")]
-        public ActionResult<ProductType> GetById(int Id)
+        public async Task<ActionResult<ProductType>> GetById(int Id)
         {
-            var productTypes = Repository.GetById(Id);
+            var productTypes = await Repository.GetByIdAsync(Id);
 
             return Ok(productTypes);
         }
 
         [HttpPost("Criar")]
-        public ActionResult<ProductType> CreateStore([FromBody] ProductType productType)
+        public async Task<ActionResult<ProductType>> CreateStore([FromBody] ProductType productType)
         {
-            Repository.Add(productType);
+            await Repository.AddAsync(productType);
 
             return Ok(productType);
         }
 
         [HttpPut("Atualizar/{Id:int}")]
-        public ActionResult<ProductType> FullUpdate(int Id, [FromBody] ProductType productType)
+        public async Task<ActionResult<ProductType>> FullUpdate(int Id, [FromBody] ProductType productType)
         {
             productType.Id = Id;
-            Repository.Update(Id, productType);
+            await Repository.UpdateAsync(Id, productType);
 
             return Ok(productType);
         }
 
         [HttpDelete("Apagar/{Id:int}")]
-        public ActionResult<bool> DeleteStore(int Id)
+        public async Task<ActionResult<bool>> DeleteStore(int Id)
         {
-            var productType = Repository.GetById(Id);
-
-            Repository.Delete(Id);
+            await Repository.DeleteAsync(Id);
 
             return Ok($"Tipo de produto com id = {Id} apagado.");
         }

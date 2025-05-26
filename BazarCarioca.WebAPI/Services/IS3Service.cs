@@ -1,7 +1,7 @@
 ﻿namespace BazarCarioca.WebAPI.Services
 {
-    public interface IS3Service
+    public interface IS3Service : IWebService
     {
-        Task UploadFileAsync(IFormFile file);
+        
     }
 }

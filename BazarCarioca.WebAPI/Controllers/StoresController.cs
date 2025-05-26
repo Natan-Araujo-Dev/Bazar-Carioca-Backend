@@ -16,65 +16,50 @@ namespace BazarCarioca.WebAPI.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Store>> Get()
+        public async Task<ActionResult<IEnumerable<Store>>> Get()
         {
-            var stores = Repository.Get().ToList();
+            var stores = await Repository.GetAsync();
 
             return Ok(stores);
         }
 
         [HttpGet("{Id:int}")]
-        public ActionResult<Store> GetById(int Id)
+        public async Task<ActionResult<Store>> GetById(int Id)
         {
-            var store = Repository.GetById(Id);
+            var store = await Repository.GetByIdAsync(Id);
 
             return Ok(store);
         }
 
         [HttpGet("Lojista/{Id:int}")]
-        public ActionResult<IEnumerable<Store>> GetStoresByShopkeeperId(int Id)
+        public async Task<ActionResult<IEnumerable<Store>>> GetStoresByShopkeeperId(int Id)
         {
-            var stores = Repository.GetByShopkeeperId(Id);
+            var stores = await Repository.GetByShopkeeperIdAsync(Id);
 
             return Ok(stores);
         }
 
         [HttpPost("Criar")]
-        public ActionResult<Store> CreateStore([FromBody] Store store)
+        public async Task<ActionResult<Store>> CreateStore([FromBody] Store store)
         {
-            Repository.Add(store);
+            await Repository.AddAsync(store);
 
             return Ok(store);
         }
 
-        // Com erro. Devo investigar
         [HttpPut("Atualizar/{Id:int}")]
-        public ActionResult<Store> FullUpdate(int Id, [FromBody] Store store)
+        public async Task<ActionResult<Store>> FullUpdate(int Id, [FromBody] Store store)
         {
             store.Id = Id;
-            Repository.Update(Id, store);
+            await Repository.UpdateAsync(Id, store);
 
             return Ok(store);
         }
 
-        // Implementar isso no Repository
-        //[HttpPatch("Atualizar/{id:int}")]
-        //public ActionResult<Store> PatchStore(int id, [FromBody] JsonPatchDocument<Store> patchDoc)
-        //{
-        //    if (patchDoc == null)
-        //        return BadRequest();
-
-        //    var store = Repository.PartialUpdate(id, patchDoc);
-
-        //    return store;
-        //}
-
         [HttpDelete("Apagar/{Id:int}")]
-        public ActionResult<bool> DeleteStore(int Id)
+        public async Task<ActionResult<bool>> DeleteStore(int Id)
         {
-            var store = Repository.GetById(Id);
-
-            Repository.Delete(Id);
+            await Repository.DeleteAsync(Id);
 
             return Ok($"Loja com id = {Id} apagada.");
         }

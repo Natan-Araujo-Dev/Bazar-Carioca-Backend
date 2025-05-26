@@ -15,45 +15,44 @@ namespace BazarCarioca.WebAPI.Controllers
             Repository = repository;
         }
 
+
         [HttpGet]
-        public ActionResult<IEnumerable<Store>> Get()
+        public async Task<ActionResult<IEnumerable<Store>>> Get()
         {
-            var services = Repository.Get().ToList();
+            var services = await Repository.GetAsync();
 
             return Ok(services);
         }
 
         [HttpGet("{Id:int}")]
-        public ActionResult<Service> GetById(int Id)
+        public async Task<ActionResult<Service>> GetById(int Id)
         {
-            var service = Repository.GetById(Id);
+            var service = await Repository.GetByIdAsync(Id);
 
             return Ok(service);
         }
 
         [HttpPost("Criar")]
-        public ActionResult<Service> CreateStore([FromBody] Service service)
+        public async Task<ActionResult<Service>> CreateStore([FromBody] Service service)
         {
-            Repository.Add(service);
+            await Repository.AddAsync(service);
 
             return Ok(service);
         }
 
         [HttpPut("Atualizar/{Id:int}")]
-        public ActionResult<Store> FullUpdate(int Id, [FromBody] Service service)
+        public async Task<ActionResult<Store>> FullUpdate(int Id, [FromBody] Service service)
         {
             service.Id = Id;
-            Repository.Update(Id, service);
+            await Repository.UpdateAsync(Id, service);
 
             return Ok(service);
         }
 
         [HttpDelete("Apagar/{Id:int}")]
-        public ActionResult<bool> DeleteStore(int Id)
+        public async Task<ActionResult<bool>> DeleteStore(int Id)
         {
-            var service = Repository.GetById(Id);
-
-            Repository.Delete(Id);
+            await Repository.DeleteAsync(Id);
 
             return Ok($"Serviço com id = {Id} apagado.");
         }
