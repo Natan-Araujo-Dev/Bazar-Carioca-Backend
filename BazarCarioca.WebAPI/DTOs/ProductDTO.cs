@@ -10,9 +10,7 @@ namespace BazarCarioca.WebAPI.DTOs
 
         public decimal Price { get; set; }
 
-        public bool RemoveImage { get; set; } = false;
-
-        public IFormFile? File { get; set; }
+        public string? ImageUrl { get; set; }
 
         public int? Stock { get; set; }
 

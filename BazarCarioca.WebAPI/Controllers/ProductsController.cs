@@ -38,63 +38,41 @@ namespace BazarCarioca.WebAPI.Controllers
         }
 
         [HttpPost("Criar")]
-        public async Task<ActionResult<Product>> Create([FromForm] ProductCreateDTO DTO)
+        public async Task<ActionResult<ProductDTO>> Create([FromForm] ProductCreateDTO dto)
         {
             var fileUrl = "";
-            if (DTO.File != null)
-                fileUrl = await WebService.UploadImageAsync("products", DTO.File);
 
+            if (dto.File != null)
+                fileUrl = await WebService.UploadImageAsync("products", dto.File);
+
+            // substituir por mapper
             var product = new Product
             {
-                ProductTypeId = DTO.ProductTypeId,
-                Name = DTO.Name,
-                Price = DTO.Price,
-                ImageUrl = fileUrl.ToString(),
-                Stock = DTO.Stock,
-                Description = DTO.Description
+                ProductTypeId = dto.ProductTypeId,
+                Name = dto.Name,
+                Price = dto.Price,
+                ImageUrl = fileUrl,
+                Stock = dto.Stock,
+                Description = dto.Description
             };
 
             await Repository.AddAsync(product);
 
-            return Ok(product);
-        }
-
-        [HttpPut("Atualizar/{Id:int}")]
-        public async Task<ActionResult<Product>> FullUpdate(int Id, [FromForm] ProductDTO DTO)
-        {
-            var fileUrl = "";
-
-            var amazonProduct = await Repository.GetByIdAsync(Id);
-
-            if (DTO.RemoveImage)
+            // substituir por mapper
+            var finalDto = new ProductDTO
             {
-                await WebService.DeleteFileAsync(amazonProduct.ImageUrl);
-
-                fileUrl = "";
-            }
-            else
-            {
-                await WebService.DeleteFileAsync(amazonProduct.ImageUrl);
-
-                fileUrl = await WebService.UploadImageAsync("products", DTO.File);
-                fileUrl = fileUrl.ToString();
-            }
-
-            var newProduct = new Product
-            {
-                Id = Id,
-                ProductTypeId = DTO.ProductTypeId,
-                Name = DTO.Name,
-                Price = DTO.Price,
+                ProductTypeId = dto.ProductTypeId,
+                Name = dto.Name,
+                Price = dto.Price,
                 ImageUrl = fileUrl,
-                Stock = DTO.Stock,
-                Description = DTO.Description
+                Stock = dto.Stock,
+                Description = dto.Description
             };
 
-            await Repository.UpdateAsync(Id, newProduct);
-
-            return Ok(newProduct);
+            return Ok(finalDto);
         }
+
+        // HttpPost removido para ser substituido por HttpPatch
 
         [HttpDelete("Apagar/{Id:int}")]
         public async Task<ActionResult<bool>> DeleteStore(int Id)
