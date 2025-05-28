@@ -15,5 +15,11 @@ namespace BazarCarioca.WebAPI.Repositories
         {
             WebService = _WebService;
         }
+
+        public async Task UpdateAsync(int id, Product product)
+        {
+            DataBase.Entry(product).State = EntityState.Modified;
+            await DataBase.SaveChangesAsync();
+        }
     }
 }

@@ -4,7 +4,9 @@ using BazarCarioca.WebAPI.Repositories;
 using BazarCarioca.WebAPI.Services;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Newtonsoft.Json;
 
 namespace BazarCarioca.WebAPI.Controllers
 {
@@ -37,7 +39,7 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(product);
         }
 
-        [HttpPost("Criar")]
+        [HttpPost]
         public async Task<ActionResult<ProductDTO>> Create([FromForm] ProductCreateDTO dto)
         {
             var fileUrl = "";
@@ -72,7 +74,58 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(finalDto);
         }
 
-        // HttpPost removido para ser substituido por HttpPatch
+        //Só funciona com Postman
+        //Refinar lógica principalmente com WebService
+        [HttpPatch("Atualizar/{id:int}")]
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<ProductDTO>> Patch(int id, [FromForm] ProductPatchRequestDTO requestDto)
+        {
+            var patchDoc = JsonConvert.DeserializeObject<JsonPatchDocument<ProductUpdateDTO>>(requestDto.PatchDocumentJson);
+
+            var product = await Repository.GetByIdAsync(id);
+
+            var dto = new ProductUpdateDTO
+            {
+                ProductTypeId = product.ProductTypeId,
+                Name = product.Name,
+                Price = product.Price,
+                Stock = product.Stock,
+                Description = product.Description
+            };
+
+            patchDoc.ApplyTo(dto, ModelState);
+
+            if (requestDto.File != null && !requestDto.RemoveImage)
+            {
+                await WebService.DeleteFileAsync(product.ImageUrl);
+                product.ImageUrl = await WebService.UploadImageAsync("products", requestDto.File);
+            }
+            else if (requestDto.RemoveImage && product.ImageUrl != "")
+            {
+                await WebService.DeleteFileAsync(product.ImageUrl);
+                product.ImageUrl = "";
+            }
+
+            product.ProductTypeId = dto.ProductTypeId;
+            product.Name = dto.Name;
+            product.Price = dto.Price;
+            product.Stock = dto.Stock;
+            product.Description = dto.Description;
+
+            await Repository.UpdateAsync(id, product);
+
+            var result = new ProductDTO
+            {
+                ProductTypeId = product.ProductTypeId,
+                Name = product.Name,
+                Price = product.Price,
+                ImageUrl = product.ImageUrl,
+                Stock = product.Stock,
+                Description = product.Description
+            };
+
+            return Ok(result);
+        }
 
         [HttpDelete("Apagar/{Id:int}")]
         public async Task<ActionResult<bool>> DeleteStore(int Id)

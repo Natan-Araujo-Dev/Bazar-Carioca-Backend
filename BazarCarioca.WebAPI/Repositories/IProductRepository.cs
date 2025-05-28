@@ -7,5 +7,6 @@ namespace BazarCarioca.WebAPI.Repositories
 {
     public interface IProductRepository : IRepository<Product>
     {
+        Task UpdateAsync(int id, Product product);
     }
 }

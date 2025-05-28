@@ -30,7 +30,6 @@ namespace BazarCarioca.WebAPI.Services
             using var stream = file.OpenReadStream();
 
             var key = $"images/{entityDirectory}/{file.FileName}";
-
             var uploadRequest = new TransferUtilityUploadRequest
             {
                 InputStream = stream,
