@@ -1,22 +1,26 @@
 using BazarCarioca.WebAPI.Context;
+using BazarCarioca.WebAPI.DTOs.Mapper;
 using BazarCarioca.WebAPI.Repositories;
 using BazarCarioca.WebAPI.Services;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 #region services
-
 
 builder.Services.AddControllers();
 
-builder.Services
-    .AddControllers()
-    .AddNewtonsoftJson();
+//JSON necessários para POST e PATCH
+builder.Services.AddControllers().AddNewtonsoftJson();
+builder.Services.AddControllers().AddJsonOptions(opts =>
+{
+    opts.JsonSerializerOptions.Converters.Add(
+        new System.Text.Json.Serialization.JsonStringEnumConverter()
+    );
+});
 
 /* caso vá mudar o banco de dados, adicione mais uma string como a de baixo
 * (lembrando de mudar também em:
@@ -38,16 +42,8 @@ builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IProductTypeRepository, ProductTypeRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
-// Necessário para o Post
-builder.Services.AddControllers().AddJsonOptions(opts =>
-{
-    opts.JsonSerializerOptions.Converters.Add(
-        new System.Text.Json.Serialization.JsonStringEnumConverter()
-    );
-});
-// Necessário para o Patch
-builder.Services.AddControllers().AddNewtonsoftJson();
-
+// Automapper para conversão entre DTOs e Entidades
+builder.Services.AddAutoMapper(typeof(ProductMappingProfile));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

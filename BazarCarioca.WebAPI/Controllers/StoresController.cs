@@ -1,6 +1,10 @@
-﻿using BazarCarioca.WebAPI.Models;
+﻿using BazarCarioca.WebAPI.DTOs;
+using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
+using BazarCarioca.WebAPI.Services;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace BazarCarioca.WebAPI.Controllers
 {
@@ -9,10 +13,12 @@ namespace BazarCarioca.WebAPI.Controllers
     public class StoresController : ControllerBase
     {
         private readonly IStoreRepository Repository;
+        private readonly IWebService WebService;
 
-        public StoresController(IStoreRepository repository)
+        public StoresController(IStoreRepository repository, IWebService webService)
         {
             Repository = repository;
+            WebService = webService;
         }
 
         [HttpGet]
@@ -39,24 +45,115 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(stores);
         }
 
-        [HttpPost("Criar")]
-        public async Task<ActionResult<Store>> CreateStore([FromBody] Store store)
+        [HttpPost]
+        public async Task<ActionResult<StoreDTO>> Create([FromForm] StoreCreateDTO dto)
         {
+            var fileUrl = "";
+
+            if (dto.File != null)
+                fileUrl = await WebService.UploadImageAsync("stores", dto.File);
+
+            // substituir por mapper
+            var store = new Store
+            {
+                ShopkeeperId = dto.ShopkeeperId,
+                Name = dto.Name,
+                Description = dto.Description,
+                ImageUrl = fileUrl,
+                CellphoneNumber = dto.CellphoneNumber,
+                Neighborhood = dto.Neighborhood,
+                Street = dto.Street,
+                Number = dto.Number,
+                OpeningTime = dto.OpeningTime,
+                ClosingTime = dto.ClosingTime
+            };
+
             await Repository.AddAsync(store);
 
-            return Ok(store);
+            // substituir por mapper
+            var finalDto = new StoreDTO
+            {
+                ShopkeeperId = dto.ShopkeeperId,
+                Name = dto.Name,
+                Description = dto.Description,
+                ImageUrl = fileUrl,
+                CellphoneNumber = dto.CellphoneNumber,
+                Neighborhood = dto.Neighborhood,
+                Street = dto.Street,
+                Number = dto.Number,
+                OpeningTime = dto.OpeningTime,
+                ClosingTime = dto.ClosingTime
+            };
+
+            return Ok(finalDto);
         }
 
-        [HttpPut("Atualizar/{Id:int}")]
-        public async Task<ActionResult<Store>> FullUpdate(int Id, [FromBody] Store store)
+        //Só funciona com Postman
+        //Refinar lógica principalmente com WebService
+        [HttpPatch("{id:int}")]
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<StoreDTO>> Patch(int id, [FromForm] StorePatchRequest requestDto)
         {
-            store.Id = Id;
-            await Repository.UpdateAsync(Id, store);
+            var patchDoc = JsonConvert.DeserializeObject<JsonPatchDocument<StoreUpdateDTO>>(requestDto.PatchDocumentJson);
 
-            return Ok(store);
+            var store = await Repository.GetByIdAsync(id);
+
+            var dto = new StoreUpdateDTO
+            {
+                ShopkeeperId = store.ShopkeeperId,
+                Name = store.Name,
+                Description = store.Description,
+                CellphoneNumber = store.CellphoneNumber,
+                Neighborhood = store.Neighborhood,
+                Street = store.Street,
+                Number = store.Number,
+                OpeningTime = store.OpeningTime,
+                ClosingTime = store.ClosingTime
+            };
+
+            patchDoc.ApplyTo(dto, ModelState);
+
+            if (requestDto.File != null && !requestDto.RemoveImage)
+            {
+                await WebService.DeleteFileAsync(store.ImageUrl);
+                store.ImageUrl = await WebService.UploadImageAsync("stores", requestDto.File);
+            }
+            else if (requestDto.RemoveImage && store.ImageUrl != "")
+            {
+                await WebService.DeleteFileAsync(store.ImageUrl);
+                store.ImageUrl = "";
+            }
+
+            store.ShopkeeperId = dto.ShopkeeperId;
+            store.Name = dto.Name;
+            store.Description = dto.Description;
+            store.CellphoneNumber = dto.CellphoneNumber;
+            store.Neighborhood = dto.Neighborhood;
+            store.Street = dto.Street;
+            store.Number = dto.Number;
+            store.OpeningTime = dto.OpeningTime;
+            store.ClosingTime = dto.ClosingTime;
+
+            await Repository.UpdateAsync(id, store);
+
+            var result = new StoreDTO
+            {
+                ShopkeeperId = store.ShopkeeperId,
+                Name = store.Name,
+                Description = store.Description,
+                ImageUrl = store.ImageUrl,
+                CellphoneNumber = store.CellphoneNumber,
+                Neighborhood = store.Neighborhood,
+                Street = store.Street,
+                Number = store.Number,
+                OpeningTime = store.OpeningTime,
+                ClosingTime = store.ClosingTime
+            };
+
+            return Ok(result);
         }
 
-        [HttpDelete("Apagar/{Id:int}")]
+        [HttpDelete("{Id:int}")]
         public async Task<ActionResult<bool>> DeleteStore(int Id)
         {
             await Repository.DeleteAsync(Id);

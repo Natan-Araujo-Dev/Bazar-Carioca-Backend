@@ -2,6 +2,7 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
+using BazarCarioca.WebAPI.Models;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 
@@ -29,7 +30,14 @@ namespace BazarCarioca.WebAPI.Services
         {
             using var stream = file.OpenReadStream();
 
-            var key = $"images/{entityDirectory}/{file.FileName}";
+            var filePrefix = Path.GetFileNameWithoutExtension(file.FileName);
+
+            CustomDate custom = new CustomDate();
+            var date = custom.WithoutBars(DateTime.Now);
+
+            var fileExtension = Path.GetExtension(file.FileName);
+
+            var key = $"images/{entityDirectory}/{filePrefix}-{date}{fileExtension}";
             var uploadRequest = new TransferUtilityUploadRequest
             {
                 InputStream = stream,

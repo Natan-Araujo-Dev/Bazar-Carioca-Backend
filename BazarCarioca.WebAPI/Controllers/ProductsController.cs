@@ -1,4 +1,6 @@
-﻿using BazarCarioca.WebAPI.DTOs;
+﻿using AutoMapper;
+using BazarCarioca.WebAPI.DTOs;
+using BazarCarioca.WebAPI.DTOs.Mapper;
 using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
 using BazarCarioca.WebAPI.Services;
@@ -16,67 +18,57 @@ namespace BazarCarioca.WebAPI.Controllers
     {
         private readonly IProductRepository Repository;
         private readonly IWebService WebService;
+        private readonly IMapper Mapper;
 
-        public ProductsController(IProductRepository repository, IWebService webService)
+        public ProductsController(IProductRepository repository, IWebService webService, IMapper mapper)
         {
             Repository = repository;
             WebService = webService;
+            Mapper = mapper;
         }
 
+
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> Get()
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> Get()
         {
             var products = await Repository.GetAsync();
+            var productsDTO = Mapper.Map<IEnumerable<ProductDTO>>(products);
 
-            return Ok(products);
+            return Ok(productsDTO);
         }
 
         [HttpGet("{Id:int}")]
-        public async Task<ActionResult<Product>> GetById(int Id)
+        public async Task<ActionResult<ProductDTO>> GetById(int Id)
         {
             var product = await Repository.GetByIdAsync(Id);
+            var productDTO = Mapper.Map<ProductDTO>(product);
 
-            return Ok(product);
+            return Ok(productDTO);
         }
 
         [HttpPost]
-        public async Task<ActionResult<ProductDTO>> Create([FromForm] ProductCreateDTO dto)
+        public async Task<ActionResult<ProductDTO>> Create([FromForm] ProductCreateDTO createDto)
         {
             var fileUrl = "";
 
-            if (dto.File != null)
-                fileUrl = await WebService.UploadImageAsync("products", dto.File);
+            if (createDto.File != null)
+                fileUrl = await WebService.UploadImageAsync("products", createDto.File);
 
-            // substituir por mapper
-            var product = new Product
-            {
-                ProductTypeId = dto.ProductTypeId,
-                Name = dto.Name,
-                Price = dto.Price,
-                ImageUrl = fileUrl,
-                Stock = dto.Stock,
-                Description = dto.Description
-            };
+            var product = Mapper.Map<Product>(createDto,
+                opts => opts.Items["fileUrl"] = fileUrl);
 
             await Repository.AddAsync(product);
 
-            // substituir por mapper
-            var finalDto = new ProductDTO
-            {
-                ProductTypeId = dto.ProductTypeId,
-                Name = dto.Name,
-                Price = dto.Price,
-                ImageUrl = fileUrl,
-                Stock = dto.Stock,
-                Description = dto.Description
-            };
+            var productDto = Mapper.Map<ProductDTO>(createDto,
+                opts => opts.Items["fileUrl"] = fileUrl);
 
-            return Ok(finalDto);
+            return Ok(productDto);
         }
 
-        //Só funciona com Postman
+        //Só funciona com Postman por causa do JSON de PATCH
         //Refinar lógica principalmente com WebService
-        [HttpPatch("Atualizar/{id:int}")]
+        [HttpPatch("{id:int}")]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<ProductDTO>> Patch(int id, [FromForm] ProductPatchRequestDTO requestDto)
         {
@@ -84,17 +76,11 @@ namespace BazarCarioca.WebAPI.Controllers
 
             var product = await Repository.GetByIdAsync(id);
 
-            var dto = new ProductUpdateDTO
-            {
-                ProductTypeId = product.ProductTypeId,
-                Name = product.Name,
-                Price = product.Price,
-                Stock = product.Stock,
-                Description = product.Description
-            };
+            var updateDto = Mapper.Map<ProductUpdateDTO>(product);
 
-            patchDoc.ApplyTo(dto, ModelState);
+            patchDoc.ApplyTo(updateDto, ModelState);
 
+            // consertar essa lógica
             if (requestDto.File != null && !requestDto.RemoveImage)
             {
                 await WebService.DeleteFileAsync(product.ImageUrl);
@@ -106,28 +92,20 @@ namespace BazarCarioca.WebAPI.Controllers
                 product.ImageUrl = "";
             }
 
-            product.ProductTypeId = dto.ProductTypeId;
-            product.Name = dto.Name;
-            product.Price = dto.Price;
-            product.Stock = dto.Stock;
-            product.Description = dto.Description;
+            product.ProductTypeId = updateDto.ProductTypeId;
+            product.Name = updateDto.Name;
+            product.Price = updateDto.Price;
+            product.Stock = updateDto.Stock;
+            product.Description = updateDto.Description;
 
             await Repository.UpdateAsync(id, product);
 
-            var result = new ProductDTO
-            {
-                ProductTypeId = product.ProductTypeId,
-                Name = product.Name,
-                Price = product.Price,
-                ImageUrl = product.ImageUrl,
-                Stock = product.Stock,
-                Description = product.Description
-            };
+            var producDto = Mapper.Map<ProductDTO>(product);
 
-            return Ok(result);
+            return Ok(producDto);
         }
 
-        [HttpDelete("Apagar/{Id:int}")]
+        [HttpDelete("{Id:int}")]
         public async Task<ActionResult<bool>> DeleteStore(int Id)
         {
             var product = await Repository.GetByIdAsync(Id);
