@@ -11,6 +11,28 @@ namespace BazarCarioca.WebAPI.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+            name: "FK_ProductTypes_Stores_StoreId",
+            table: "ProductTypes");
+
+            migrationBuilder.AlterColumn<int>(
+                name: "StoreId",
+                table: "ProductTypes",
+                type: "int",
+                nullable: false,
+                defaultValue: 0,
+                oldClrType: typeof(int),
+                oldType: "int",
+                oldNullable: true);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_ProductTypes_Stores_StoreId",
+                table: "ProductTypes",
+                column: "StoreId",
+                principalTable: "Stores",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
             migrationBuilder.AlterColumn<TimeOnly>(
                 name: "OpeningTime",
                 table: "Stores",
@@ -59,6 +81,28 @@ namespace BazarCarioca.WebAPI.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+            name: "FK_ProductTypes_Stores_StoreId",
+            table: "ProductTypes");
+
+            migrationBuilder.AlterColumn<int>(
+                name: "StoreId",
+                table: "ProductTypes",
+                type: "int",
+                nullable: false,
+                defaultValue: 0,
+                oldClrType: typeof(int),
+                oldType: "int",
+                oldNullable: true);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_ProductTypes_Stores_StoreId",
+                table: "ProductTypes",
+                column: "StoreId",
+                principalTable: "Stores",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
             migrationBuilder.AlterColumn<TimeOnly>(
                 name: "OpeningTime",
                 table: "Stores",

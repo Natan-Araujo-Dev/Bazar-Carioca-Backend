@@ -26,15 +26,13 @@ namespace BazarCarioca.WebAPI.Services
             _BucketName = awsOptions["BucketName"];
         }
 
-        public async Task<string> UploadImageAsync(string entityDirectory, IFormFile file)
+        public async Task<string> UploadImageAsync(string entityDirectory, string fileName, IFormFile file)
         {
             using var stream = file.OpenReadStream();
 
-            var filePrefix = Path.GetFileNameWithoutExtension(file.FileName);
-
+            var filePrefix = fileName;
             CustomDate custom = new CustomDate();
             var date = custom.WithoutBars(DateTime.Now);
-
             var fileExtension = Path.GetExtension(file.FileName);
 
             var key = $"images/{entityDirectory}/{filePrefix}-{date}{fileExtension}";

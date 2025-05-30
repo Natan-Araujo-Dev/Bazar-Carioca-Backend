@@ -20,7 +20,6 @@ namespace BazarCarioca.WebAPI.Models
 
         public string? CellphoneNumber { get; set; }
 
-        // Endereço - Antigo "Address"
         public string? Neighborhood { get; set; }
 
         public string? Street { get; set; }

@@ -46,26 +46,26 @@ namespace BazarCarioca.WebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<StoreDTO>> Create([FromForm] StoreCreateDTO dto)
+        public async Task<ActionResult<StoreDTO>> Create([FromForm] StoreCreateDTO createDto)
         {
             var fileUrl = "";
 
-            if (dto.File != null)
-                fileUrl = await WebService.UploadImageAsync("stores", dto.File);
+            if (createDto.File != null)
+                fileUrl = await WebService.UploadImageAsync("stores", createDto.Name, createDto.File);
 
             // substituir por mapper
             var store = new Store
             {
-                ShopkeeperId = dto.ShopkeeperId,
-                Name = dto.Name,
-                Description = dto.Description,
+                ShopkeeperId = createDto.ShopkeeperId,
+                Name = createDto.Name,
+                Description = createDto.Description,
                 ImageUrl = fileUrl,
-                CellphoneNumber = dto.CellphoneNumber,
-                Neighborhood = dto.Neighborhood,
-                Street = dto.Street,
-                Number = dto.Number,
-                OpeningTime = dto.OpeningTime,
-                ClosingTime = dto.ClosingTime
+                CellphoneNumber = createDto.CellphoneNumber,
+                Neighborhood = createDto.Neighborhood,
+                Street = createDto.Street,
+                Number = createDto.Number,
+                OpeningTime = createDto.OpeningTime,
+                ClosingTime = createDto.ClosingTime
             };
 
             await Repository.AddAsync(store);
@@ -73,16 +73,16 @@ namespace BazarCarioca.WebAPI.Controllers
             // substituir por mapper
             var finalDto = new StoreDTO
             {
-                ShopkeeperId = dto.ShopkeeperId,
-                Name = dto.Name,
-                Description = dto.Description,
+                ShopkeeperId = createDto.ShopkeeperId,
+                Name = createDto.Name,
+                Description = createDto.Description,
                 ImageUrl = fileUrl,
-                CellphoneNumber = dto.CellphoneNumber,
-                Neighborhood = dto.Neighborhood,
-                Street = dto.Street,
-                Number = dto.Number,
-                OpeningTime = dto.OpeningTime,
-                ClosingTime = dto.ClosingTime
+                CellphoneNumber = createDto.CellphoneNumber,
+                Neighborhood = createDto.Neighborhood,
+                Street = createDto.Street,
+                Number = createDto.Number,
+                OpeningTime = createDto.OpeningTime,
+                ClosingTime = createDto.ClosingTime
             };
 
             return Ok(finalDto);
@@ -116,7 +116,8 @@ namespace BazarCarioca.WebAPI.Controllers
             if (requestDto.File != null && !requestDto.RemoveImage)
             {
                 await WebService.DeleteFileAsync(store.ImageUrl);
-                store.ImageUrl = await WebService.UploadImageAsync("stores", requestDto.File);
+                // ajeitar isso (JSON > C#)
+                store.ImageUrl = await WebService.UploadImageAsync("stores", "tapa buraco", requestDto.File);
             }
             else if (requestDto.RemoveImage && store.ImageUrl != "")
             {

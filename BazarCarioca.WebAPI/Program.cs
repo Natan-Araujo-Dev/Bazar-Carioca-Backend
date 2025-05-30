@@ -25,7 +25,7 @@ builder.Services.AddControllers().AddJsonOptions(opts =>
 /* caso vá mudar o banco de dados, adicione mais uma string como a de baixo
 * (lembrando de mudar também em:
 * appsettings.json > ConnectionStrings) */
-string MySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+string MySqlConnection = builder.Configuration.GetConnectionString("AWSRDS");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseMySql(MySqlConnection,

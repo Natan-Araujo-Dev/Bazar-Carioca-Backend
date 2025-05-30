@@ -53,7 +53,7 @@ namespace BazarCarioca.WebAPI.Controllers
             var fileUrl = "";
 
             if (createDto.File != null)
-                fileUrl = await WebService.UploadImageAsync("products", createDto.File);
+                fileUrl = await WebService.UploadImageAsync("products", createDto.Name, createDto.File);
 
             var product = Mapper.Map<Product>(createDto,
                 opts => opts.Items["fileUrl"] = fileUrl);
@@ -84,7 +84,8 @@ namespace BazarCarioca.WebAPI.Controllers
             if (requestDto.File != null && !requestDto.RemoveImage)
             {
                 await WebService.DeleteFileAsync(product.ImageUrl);
-                product.ImageUrl = await WebService.UploadImageAsync("products", requestDto.File);
+                // ajeitar isso (JSON > C#)
+                product.ImageUrl = await WebService.UploadImageAsync("products", "tapaburaco", requestDto.File);
             }
             else if (requestDto.RemoveImage && product.ImageUrl != "")
             {

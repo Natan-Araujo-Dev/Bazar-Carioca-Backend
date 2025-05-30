@@ -191,7 +191,7 @@ namespace BazarCarioca.WebAPI.Migrations
 
                     b.HasIndex("ShopkeeperId");
 
-                    b.ToTable("Stores");
+                    b.ToTable("stores");
                 });
 
             modelBuilder.Entity("BazarCarioca.WebAPI.Models.Product", b =>
@@ -210,7 +210,8 @@ namespace BazarCarioca.WebAPI.Migrations
                     b.HasOne("BazarCarioca.WebAPI.Models.Store", "Store")
                         .WithMany("ProductTypes")
                         .HasForeignKey("StoreId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Store");
                 });
