@@ -33,26 +33,24 @@ namespace BazarCarioca.WebAPI.Repositories
         public async Task AddAsync(T entity)
         {
             await DataBase.Set<T>().AddAsync(entity);
-            await Commit();
+            await CommitAsync();
         }
 
         public async Task UpdateAsync(int Id, T entity)
         {
             DataBase.Entry(entity).State = EntityState.Modified;
             DataBase.Set<T>().Update(entity);
-            await Commit();
+            await CommitAsync();
         }
 
         public async Task DeleteAsync(int Id)
         {
             var entity = await DataBase.Set<T>().FindAsync(Id);
             DataBase.Set<T>().Remove(entity);
-            await Commit();
+            await CommitAsync();
         }
 
-
-
-        private async Task Commit()
+        public async Task CommitAsync()
         {
             await DataBase.SaveChangesAsync();
         }

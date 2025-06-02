@@ -12,15 +12,11 @@ namespace BazarCarioca.WebAPI.DTOs.Mapper
                 .ReverseMap();
 
             CreateMap<ProductCreateDTO, Product>()
-                .ForMember(dest => dest.ImageUrl,
-                           opt => opt.MapFrom((src, dest, _, ctx)
-                                   => ctx.Items["fileUrl"] as string))
+                .ForMember(dest => dest.ImageUrl, opt => opt.Ignore())
                 .ReverseMap();
 
             CreateMap<ProductCreateDTO, ProductDTO>()
-                .ForMember(dest => dest.ImageUrl,
-                           opt => opt.MapFrom((src, dest, _, ctx)
-                                   => ctx.Items["fileUrl"] as string))
+                .ForMember(dest => dest.ImageUrl, opt => opt.Ignore())
                 .ReverseMap();
 
             CreateMap<ProductUpdateDTO, Product>()

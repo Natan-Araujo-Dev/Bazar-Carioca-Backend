@@ -47,21 +47,37 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(productDTO);
         }
 
+        //[HttpPost]
+        //public async Task<ActionResult<ProductDTO>> Create([FromForm] ProductCreateDTO createDto)
+        //{
+        //    var fileUrl = "";
+        //    var fileName = createDto.Name;
+
+        //    if (createDto.File != null)
+        //        fileUrl = await WebService.UploadImageAsync("products", fileName, createDto.File);
+
+        //    var product = Mapper.Map<Product>(createDto,
+        //        opts => opts.Items["fileUrl"] = fileUrl);
+
+        //    await Repository.AddAsync(product);
+
+        //    var productDto = Mapper.Map<ProductDTO>(createDto,
+        //        opts => opts.Items["fileUrl"] = fileUrl);
+
+        //    return Ok(productDto);
+        //}
+
         [HttpPost]
         public async Task<ActionResult<ProductDTO>> Create([FromForm] ProductCreateDTO createDto)
         {
-            var fileUrl = "";
+            var product = Mapper.Map<Product>(createDto);
 
             if (createDto.File != null)
-                fileUrl = await WebService.UploadImageAsync("products", createDto.Name, createDto.File);
+                product = await Repository.AddWithImageAsync(product, createDto.File);
+            else
+                await Repository.AddAsync(product);
 
-            var product = Mapper.Map<Product>(createDto,
-                opts => opts.Items["fileUrl"] = fileUrl);
-
-            await Repository.AddAsync(product);
-
-            var productDto = Mapper.Map<ProductDTO>(createDto,
-                opts => opts.Items["fileUrl"] = fileUrl);
+            var productDto = Mapper.Map<ProductDTO>(product);
 
             return Ok(productDto);
         }

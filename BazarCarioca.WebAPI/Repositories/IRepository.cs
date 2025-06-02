@@ -7,5 +7,7 @@
         Task AddAsync(T entity);
         Task UpdateAsync(int Id, T entity);
         Task DeleteAsync(int Id);
+
+        Task CommitAsync();
     }
 }
