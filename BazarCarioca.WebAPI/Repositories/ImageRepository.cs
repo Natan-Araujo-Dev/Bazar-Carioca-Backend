@@ -47,24 +47,67 @@ namespace BazarCarioca.WebAPI.Repositories
 
             patchDoc.ApplyTo(updateDto);
 
-            // consertar essa lógica
-            if (requestDto.File != null && !requestDto.RemoveImage)
+            //// consertar essa lógica
+            //if (requestDto.File != null && !requestDto.RemoveImage)
+            //{
+            //    await WebService.DeleteFileAsync(entity.ImageUrl);
+
+            //    var fileDirectory = $"{typeof(Entity).Name.ToLower()}s";
+            //    var fileName = entity.Id.ToString();
+            //    entity.ImageUrl = await WebService.UploadImageAsync(fileDirectory, fileName, requestDto.File);
+            //}
+            //else if (requestDto.RemoveImage && entity.ImageUrl != "")
+            //{
+            //    Console.WriteLine("*******************\n" + entity.ImageUrl);
+            //    await WebService.DeleteFileAsync(entity.ImageUrl);
+            //    entity.ImageUrl = "";
+            //}
+
+            if (entity.ImageUrl != null)
             {
-                await WebService.DeleteFileAsync(entity.ImageUrl);
+                // se tem imagem && (não quer remover imagem OU não falou que quer remover imagem)
+                if (requestDto.File != null && (!requestDto.RemoveImage || requestDto.RemoveImage == null))
+                {
+                    Console.WriteLine("\n*************************\nCaso: 1\n*************************\n");
 
-                var fileDirectory = $"{typeof(Entity).Name.ToLower()}s";
-                var fileName = entity.Id.ToString();
-                entity.ImageUrl = await WebService.UploadImageAsync(fileDirectory, fileName, requestDto.File);
+                    //remove e adiciona
+                    await WebService.DeleteFileAsync(entity.ImageUrl);
+
+                    var fileDirectory = $"{typeof(Entity).Name.ToLower()}s";
+                    var fileName = entity.Id.ToString();
+                    entity.ImageUrl = await WebService.UploadImageAsync(fileDirectory, fileName, requestDto.File);
+                }
+                else if (requestDto.RemoveImage)
+                {
+                    Console.WriteLine("\n*************************\nCaso: 2\n*************************\n");
+
+                    //remove
+                    await WebService.DeleteFileAsync(entity.ImageUrl);
+                }
             }
-            else if (requestDto.RemoveImage && entity.ImageUrl != "")
+            else
             {
-                await WebService.DeleteFileAsync(entity.ImageUrl);
-                entity.ImageUrl = "";
+                // se tem imagem && (não quer remover imagem OU não falou que quer remover imagem)
+                if (requestDto.File != null && (!requestDto.RemoveImage || requestDto.RemoveImage == null))
+                {
+                    Console.WriteLine("\n*************************\nCaso: 3\n*************************\n");
+
+                    //adiciona
+                    var fileDirectory = $"{typeof(Entity).Name.ToLower()}s";
+                    var fileName = entity.Id.ToString();
+                    entity.ImageUrl = await WebService.UploadImageAsync(fileDirectory, fileName, requestDto.File);
+                }
+                else if (requestDto.RemoveImage)
+                {
+                    Console.WriteLine("\n*************************\nCaso: 4\n*************************\n");
+
+                    //faz nada
+                }
             }
 
-            entity = Mapper.Map<Entity>(updateDto);
+                entity = Mapper.Map(updateDto, entity);
 
-            await UpdateAsync(Id, entity);
+            await CommitAsync();
 
             return entity;
         }

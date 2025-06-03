@@ -18,7 +18,7 @@ namespace BazarCarioca.WebAPI.Repositories
 
         public async Task<IQueryable<Entity>> GetAsync()
         {
-            var entity = DataBase.Set<Entity>().AsNoTracking();
+            var entity = DataBase.Set<Entity>();
 
             return await Task.FromResult(entity);
         }
@@ -26,7 +26,6 @@ namespace BazarCarioca.WebAPI.Repositories
         public async Task<Entity> GetByIdAsync(int Id)
         {
             var entity = await DataBase.Set<Entity>()
-                .AsNoTracking()
                 .FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == Id);
 
             return entity;

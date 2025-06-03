@@ -30,26 +30,37 @@ namespace BazarCarioca.WebAPI.Controllers
 
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductDTO>>> Get()
+        public async Task<IActionResult> Get()
         {
             var products = await Repository.GetAsync();
+
+            if (products == Empty)
+                return NotFound("Nenhum produto no banco de dados");
+
             var productsDTO = Mapper.Map<IEnumerable<ProductDTO>>(products);
 
             return Ok(productsDTO);
         }
 
         [HttpGet("{Id:int}")]
-        public async Task<ActionResult<ProductDTO>> GetById(int Id)
+        public async Task<IActionResult> GetById(int Id)
         {
             var product = await Repository.GetByIdAsync(Id);
+
+            if (product == null)
+                return NotFound("O produto com esse Id não foi encontrado");
+
             var productDTO = Mapper.Map<ProductDTO>(product);
 
             return Ok(productDTO);
         }
 
         [HttpPost]
-        public async Task<ActionResult<ProductDTO>> Create([FromForm] ProductCreateDTO createDto)
+        public async Task<IActionResult> Create([FromForm] ProductCreateDTO createDto)
         {
+            if (createDto == null)
+                return BadRequest("Houve um erro na requisição HTTP. Informações não foram enviadas.");
+
             var product = Mapper.Map<Product>(createDto);
 
             if (createDto.File != null)
@@ -66,14 +77,12 @@ namespace BazarCarioca.WebAPI.Controllers
         //Refinar lógica principalmente com WebService
         [HttpPatch("{Id:int}")]
         [Consumes("multipart/form-data")]
-        public async Task<ActionResult<ProductDTO>> Patch(int Id, [FromForm] PatchRequestDTO requestDto)
+        public async Task<IActionResult> Patch(int Id, [FromForm] PatchRequestDTO requestDto)
         {
-            var productPatched = await Repository.UpdateWithImageAsync(Id, requestDto);
+            if (requestDto == null)
+                return BadRequest("Houve um erro na requisição HTTP. Informações não foram enviadas.");
 
-            if (requestDto.File != null)
-                Console.WriteLine("***** Pelo visto NÂO é null");
-            else
-                Console.WriteLine("***** Pelo visto é null");
+            var productPatched = await Repository.UpdateWithImageAsync(Id, requestDto);
 
             var productDto = Mapper.Map<ProductDTO>(productPatched);
 
@@ -81,9 +90,13 @@ namespace BazarCarioca.WebAPI.Controllers
         }
 
         [HttpDelete("{Id:int}")]
-        public async Task<ActionResult<bool>> DeleteStore(int Id)
+        public async Task<IActionResult> DeleteStore(int Id)
         {
             var product = await Repository.GetByIdAsync(Id);
+
+            if (product == null)
+                return NotFound($"Produto não foi apagado pois não existe um produto com Id = {Id}");
+
             var fileUrl = product.ImageUrl;
 
             await WebService.DeleteFileAsync(fileUrl);
