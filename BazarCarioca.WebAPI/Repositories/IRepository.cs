@@ -1,11 +1,11 @@
 ﻿namespace BazarCarioca.WebAPI.Repositories
 {
-    public interface IRepository<T>
+    public interface IRepository<Entity>
     {
-        Task<IQueryable<T>> GetAsync();
-        Task<T> GetByIdAsync(int Id);
-        Task AddAsync(T entity);
-        Task UpdateAsync(int Id, T entity);
+        Task<IQueryable<Entity>> GetAsync();
+        Task<Entity> GetByIdAsync(int Id);
+        Task AddAsync(Entity entity);
+        Task UpdateAsync(int Id, Entity entity);
         Task DeleteAsync(int Id);
 
         Task CommitAsync();

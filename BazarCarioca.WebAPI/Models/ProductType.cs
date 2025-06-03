@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace BazarCarioca.WebAPI.Models
 {
-    public class ProductType
+    public class ProductType : IEntity
     {
         public int Id { get; set; }
 

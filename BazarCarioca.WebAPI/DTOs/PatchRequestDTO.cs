@@ -1,6 +1,6 @@
 ﻿namespace BazarCarioca.WebAPI.DTOs
 {
-    public class ProductPatchRequestDTO
+    public class PatchRequestDTO
     {
         public string PatchDocumentJson { get; set; }
         public IFormFile? File { get; set; }

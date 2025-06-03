@@ -1,9 +1,11 @@
 ﻿using BazarCarioca.WebAPI.Context;
+using BazarCarioca.WebAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace BazarCarioca.WebAPI.Repositories
 {
-    public class Repository<T> : IRepository<T> where T : class
+    public class Repository<Entity> : IRepository<Entity>
+        where Entity : class, IEntity
     {
         protected AppDbContext DataBase;
 
@@ -14,39 +16,39 @@ namespace BazarCarioca.WebAPI.Repositories
 
 
 
-        public async Task<IQueryable<T>> GetAsync()
+        public async Task<IQueryable<Entity>> GetAsync()
         {
-            var entity = DataBase.Set<T>().AsNoTracking();
+            var entity = DataBase.Set<Entity>().AsNoTracking();
 
             return await Task.FromResult(entity);
         }
 
-        public async Task<T> GetByIdAsync(int Id)
+        public async Task<Entity> GetByIdAsync(int Id)
         {
-            var entity = await DataBase.Set<T>()
+            var entity = await DataBase.Set<Entity>()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == Id);
 
             return entity;
         }
 
-        public async Task AddAsync(T entity)
+        public async Task AddAsync(Entity entity)
         {
-            await DataBase.Set<T>().AddAsync(entity);
+            await DataBase.Set<Entity>().AddAsync(entity);
             await CommitAsync();
         }
 
-        public async Task UpdateAsync(int Id, T entity)
+        public async Task UpdateAsync(int Id, Entity entity)
         {
             DataBase.Entry(entity).State = EntityState.Modified;
-            DataBase.Set<T>().Update(entity);
+            DataBase.Set<Entity>().Update(entity);
             await CommitAsync();
         }
 
         public async Task DeleteAsync(int Id)
         {
-            var entity = await DataBase.Set<T>().FindAsync(Id);
-            DataBase.Set<T>().Remove(entity);
+            var entity = await DataBase.Set<Entity>().FindAsync(Id);
+            DataBase.Set<Entity>().Remove(entity);
             await CommitAsync();
         }
 

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace BazarCarioca.WebAPI.Models
 {
-    public class Store
+    public class Store : IEntity, IImageEntity
     {
         public int Id { get; set; }
 

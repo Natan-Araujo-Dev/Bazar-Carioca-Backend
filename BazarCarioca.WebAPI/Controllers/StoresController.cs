@@ -1,4 +1,5 @@
-﻿using BazarCarioca.WebAPI.DTOs;
+﻿using AutoMapper;
+using BazarCarioca.WebAPI.DTOs;
 using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
 using BazarCarioca.WebAPI.Services;
@@ -14,11 +15,13 @@ namespace BazarCarioca.WebAPI.Controllers
     {
         private readonly IStoreRepository Repository;
         private readonly IWebService WebService;
+        private readonly IMapper Mapper;
 
-        public StoresController(IStoreRepository repository, IWebService webService)
+        public StoresController(IStoreRepository repository, IWebService webService, IMapper mapper)
         {
             Repository = repository;
             WebService = webService;
+            Mapper = mapper;
         }
 
         [HttpGet]
@@ -48,44 +51,17 @@ namespace BazarCarioca.WebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<StoreDTO>> Create([FromForm] StoreCreateDTO createDto)
         {
-            var fileUrl = "";
+            var store = Mapper.Map<Store>(createDto);
 
             if (createDto.File != null)
-                fileUrl = await WebService.UploadImageAsync("stores", createDto.Name, createDto.File);
+                store = await Repository.AddWithImageAsync(store, createDto.File);
+            else
+                Console.WriteLine("Não era pra ter vindo pra cá...");
+            //await Repository.AddAsync(product);
 
-            // substituir por mapper
-            var store = new Store
-            {
-                ShopkeeperId = createDto.ShopkeeperId,
-                Name = createDto.Name,
-                Description = createDto.Description,
-                ImageUrl = fileUrl,
-                CellphoneNumber = createDto.CellphoneNumber,
-                Neighborhood = createDto.Neighborhood,
-                Street = createDto.Street,
-                Number = createDto.Number,
-                OpeningTime = createDto.OpeningTime,
-                ClosingTime = createDto.ClosingTime
-            };
+            var storeDto = Mapper.Map<StoreDTO>(store);
 
-            await Repository.AddAsync(store);
-
-            // substituir por mapper
-            var finalDto = new StoreDTO
-            {
-                ShopkeeperId = createDto.ShopkeeperId,
-                Name = createDto.Name,
-                Description = createDto.Description,
-                ImageUrl = fileUrl,
-                CellphoneNumber = createDto.CellphoneNumber,
-                Neighborhood = createDto.Neighborhood,
-                Street = createDto.Street,
-                Number = createDto.Number,
-                OpeningTime = createDto.OpeningTime,
-                ClosingTime = createDto.ClosingTime
-            };
-
-            return Ok(finalDto);
+            return Ok(storeDto);
         }
 
         //Só funciona com Postman

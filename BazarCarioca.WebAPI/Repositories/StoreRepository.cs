@@ -1,5 +1,6 @@
 ﻿using BazarCarioca.WebAPI.Context;
 using BazarCarioca.WebAPI.Models;
+using BazarCarioca.WebAPI.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -7,15 +8,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BazarCarioca.WebAPI.Repositories
 {
-    public class StoreRepository : Repository<Store>, IStoreRepository
+    public class StoreRepository : ImageRepository<Store>, IStoreRepository
     {
-        public StoreRepository(AppDbContext _DataBase) : base(_DataBase)
+        public StoreRepository(AppDbContext _DataBase, IWebService _WebService) : base(_DataBase, _WebService)
         {
         }
 
         public async Task<IEnumerable<Store>> GetByShopkeeperIdAsync(int Id)
         {
-            var stores = await DataBase.stores
+            var stores = await DataBase.Stores
                  .Where(s =>  s.ShopkeeperId == Id)
                  .ToListAsync();
 

@@ -2,7 +2,7 @@
 
 namespace BazarCarioca.WebAPI.Repositories
 {
-    public interface IStoreRepository : IRepository<Store>
+    public interface IStoreRepository : IRepository<Store>, IImageRepository<Store>
     {
         Task<IEnumerable<Store>> GetByShopkeeperIdAsync(int Id);
     }

@@ -55,7 +55,8 @@ namespace BazarCarioca.WebAPI.Controllers
             if (createDto.File != null)
                 product = await Repository.AddWithImageAsync(product, createDto.File);
             else
-                await Repository.AddAsync(product);
+                Console.WriteLine("Não era pra ter vindo pra cá...");
+                //await Repository.AddAsync(product);
 
             var productDto = Mapper.Map<ProductDTO>(product);
 
@@ -66,7 +67,7 @@ namespace BazarCarioca.WebAPI.Controllers
         //Refinar lógica principalmente com WebService
         [HttpPatch("{Id:int}")]
         [Consumes("multipart/form-data")]
-        public async Task<ActionResult<ProductDTO>> Patch(int Id, [FromForm] ProductPatchRequestDTO requestDto)
+        public async Task<ActionResult<ProductDTO>> Patch(int Id, [FromForm] PatchRequestDTO requestDto)
         {
             var productPatched = await Repository.UpdateWithImageAsync(Id, requestDto);
 

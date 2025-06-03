@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace BazarCarioca.WebAPI.Repositories
 {
-    public interface IProductRepository : IRepository<Product>
+    public interface IProductRepository : IRepository<Product>, IImageRepository<Product>
     {
-        Task<Product> AddWithImageAsync(Product product, IFormFile file);
-        Task<Product> UpdateWithImageAsync(int Id, ProductPatchRequestDTO requestDto);
+        
     }
 }
