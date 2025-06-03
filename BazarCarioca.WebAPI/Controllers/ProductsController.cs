@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BazarCarioca.WebAPI.DTOs;
 using BazarCarioca.WebAPI.DTOs.Mapper;
+using BazarCarioca.WebAPI.Extensions;
 using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
 using BazarCarioca.WebAPI.Services;
@@ -34,8 +35,8 @@ namespace BazarCarioca.WebAPI.Controllers
         {
             var products = await Repository.GetAsync();
 
-            if (products == Empty)
-                return NotFound("Nenhum produto no banco de dados");
+            if (products.IsNullOrEmpty())
+                return NotFound("Nenhum produto foi encotrado.");
 
             var productsDTO = Mapper.Map<IEnumerable<ProductDTO>>(products);
 
@@ -48,7 +49,7 @@ namespace BazarCarioca.WebAPI.Controllers
             var product = await Repository.GetByIdAsync(Id);
 
             if (product == null)
-                return NotFound("O produto com esse Id não foi encontrado");
+                return NotFound($"O produto com Id = {Id} não foi encontrado.");
 
             var productDTO = Mapper.Map<ProductDTO>(product);
 
@@ -59,7 +60,7 @@ namespace BazarCarioca.WebAPI.Controllers
         public async Task<IActionResult> Create([FromForm] ProductCreateDTO createDto)
         {
             if (createDto == null)
-                return BadRequest("Houve um erro na requisição HTTP. Informações não foram enviadas.");
+                return BadRequest("Nenhuma informação foi passada na requisição.");
 
             var product = Mapper.Map<Product>(createDto);
 
@@ -74,7 +75,6 @@ namespace BazarCarioca.WebAPI.Controllers
         }
 
         //Só funciona com Postman por causa do JSON de PATCH
-        //Refinar lógica principalmente com WebService
         [HttpPatch("{Id:int}")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Patch(int Id, [FromForm] PatchRequestDTO requestDto)
@@ -90,20 +90,53 @@ namespace BazarCarioca.WebAPI.Controllers
         }
 
         [HttpDelete("{Id:int}")]
-        public async Task<IActionResult> DeleteStore(int Id)
+        public async Task<IActionResult> Delete(int Id)
         {
             var product = await Repository.GetByIdAsync(Id);
 
             if (product == null)
-                return NotFound($"Produto não foi apagado pois não existe um produto com Id = {Id}");
+                return NotFound($"O produto não foi apagado pois não existe um produto com Id = {Id}.");
 
             var fileUrl = product.ImageUrl;
 
-            await WebService.DeleteFileAsync(fileUrl);
+            if (fileUrl != null)
+                await WebService.DeleteFileAsync(fileUrl);
 
             await Repository.DeleteAsync(Id);
 
-            return Ok($"Produto com id = {Id} apagado.");
+            return Ok($"O produto com id = {Id} apagado.");
+        }
+
+        /// <summary>
+        /// Método somente para desenvolvimento. NÂO implemente.
+        /// </summary>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<IActionResult> DeleteAll()
+        {
+            var products = await Repository.GetAsync();
+
+            if (products.IsNullOrEmpty())
+                return NotFound("Nenhum produto foi apagado pois não existem produtos cadastrados.");
+
+            var ids = new List<int>();
+            var imageUrls = new List<string>();
+
+            foreach (var product in products)
+            {
+                ids.Add(product.Id);
+                imageUrls.Add(product.ImageUrl);
+            }
+
+            for (int i = 0; i < ids.Count; i++)
+            {
+                if (imageUrls[i] != null)
+                    await WebService.DeleteFileAsync(imageUrls[i]);
+
+                await Repository.DeleteAsync(ids[i]);
+            }
+
+            return Ok("Todos produtos e suas imagens foram apagadas.");
         }
     }
 }
