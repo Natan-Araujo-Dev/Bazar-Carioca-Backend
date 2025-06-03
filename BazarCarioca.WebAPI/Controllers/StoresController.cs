@@ -56,8 +56,7 @@ namespace BazarCarioca.WebAPI.Controllers
             if (createDto.File != null)
                 store = await Repository.AddWithImageAsync(store, createDto.File);
             else
-                Console.WriteLine("Não era pra ter vindo pra cá...");
-            //await Repository.AddAsync(product);
+                await Repository.AddAsync(store);
 
             var storeDto = Mapper.Map<StoreDTO>(store);
 
@@ -66,68 +65,20 @@ namespace BazarCarioca.WebAPI.Controllers
 
         //Só funciona com Postman
         //Refinar lógica principalmente com WebService
-        [HttpPatch("{id:int}")]
+        [HttpPatch("{Id:int}")]
         [Consumes("multipart/form-data")]
-        public async Task<ActionResult<StoreDTO>> Patch(int id, [FromForm] StorePatchRequest requestDto)
+        public async Task<ActionResult<StoreDTO>> Patch(int Id, [FromForm] PatchRequestDTO requestDto)
         {
-            var patchDoc = JsonConvert.DeserializeObject<JsonPatchDocument<StoreUpdateDTO>>(requestDto.PatchDocumentJson);
+            var productPatched = await Repository.UpdateWithImageAsync(Id, requestDto);
 
-            var store = await Repository.GetByIdAsync(id);
+            if (requestDto.File != null)
+                Console.WriteLine("***** Pelo visto NÂO é null");
+            else
+                Console.WriteLine("***** Pelo visto é null");
 
-            var dto = new StoreUpdateDTO
-            {
-                ShopkeeperId = store.ShopkeeperId,
-                Name = store.Name,
-                Description = store.Description,
-                CellphoneNumber = store.CellphoneNumber,
-                Neighborhood = store.Neighborhood,
-                Street = store.Street,
-                Number = store.Number,
-                OpeningTime = store.OpeningTime,
-                ClosingTime = store.ClosingTime
-            };
+            var productDto = Mapper.Map<StoreDTO>(productPatched);
 
-            patchDoc.ApplyTo(dto, ModelState);
-
-            if (requestDto.File != null && !requestDto.RemoveImage)
-            {
-                await WebService.DeleteFileAsync(store.ImageUrl);
-                // ajeitar isso (JSON > C#)
-                store.ImageUrl = await WebService.UploadImageAsync("stores", "tapa buraco", requestDto.File);
-            }
-            else if (requestDto.RemoveImage && store.ImageUrl != "")
-            {
-                await WebService.DeleteFileAsync(store.ImageUrl);
-                store.ImageUrl = "";
-            }
-
-            store.ShopkeeperId = dto.ShopkeeperId;
-            store.Name = dto.Name;
-            store.Description = dto.Description;
-            store.CellphoneNumber = dto.CellphoneNumber;
-            store.Neighborhood = dto.Neighborhood;
-            store.Street = dto.Street;
-            store.Number = dto.Number;
-            store.OpeningTime = dto.OpeningTime;
-            store.ClosingTime = dto.ClosingTime;
-
-            await Repository.UpdateAsync(id, store);
-
-            var result = new StoreDTO
-            {
-                ShopkeeperId = store.ShopkeeperId,
-                Name = store.Name,
-                Description = store.Description,
-                ImageUrl = store.ImageUrl,
-                CellphoneNumber = store.CellphoneNumber,
-                Neighborhood = store.Neighborhood,
-                Street = store.Street,
-                Number = store.Number,
-                OpeningTime = store.OpeningTime,
-                ClosingTime = store.ClosingTime
-            };
-
-            return Ok(result);
+            return Ok(productDto);
         }
 
         [HttpDelete("{Id:int}")]

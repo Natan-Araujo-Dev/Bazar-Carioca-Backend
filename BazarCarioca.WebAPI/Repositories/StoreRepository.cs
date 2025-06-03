@@ -1,4 +1,6 @@
-﻿using BazarCarioca.WebAPI.Context;
+﻿using AutoMapper;
+using BazarCarioca.WebAPI.Context;
+using BazarCarioca.WebAPI.DTOs;
 using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -8,9 +10,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BazarCarioca.WebAPI.Repositories
 {
-    public class StoreRepository : ImageRepository<Store>, IStoreRepository
+    public class StoreRepository : ImageRepository<Store, StoreUpdateDTO>, IStoreRepository
     {
-        public StoreRepository(AppDbContext _DataBase, IWebService _WebService) : base(_DataBase, _WebService)
+        public StoreRepository(AppDbContext _DataBase, IWebService _WebService, IMapper _Mapper) : base(_DataBase, _WebService, _Mapper)
         {
         }
 

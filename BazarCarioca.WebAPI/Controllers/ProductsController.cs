@@ -55,8 +55,7 @@ namespace BazarCarioca.WebAPI.Controllers
             if (createDto.File != null)
                 product = await Repository.AddWithImageAsync(product, createDto.File);
             else
-                Console.WriteLine("Não era pra ter vindo pra cá...");
-                //await Repository.AddAsync(product);
+                await Repository.AddAsync(product);
 
             var productDto = Mapper.Map<ProductDTO>(product);
 
@@ -71,6 +70,11 @@ namespace BazarCarioca.WebAPI.Controllers
         {
             var productPatched = await Repository.UpdateWithImageAsync(Id, requestDto);
 
+            if (requestDto.File != null)
+                Console.WriteLine("***** Pelo visto NÂO é null");
+            else
+                Console.WriteLine("***** Pelo visto é null");
+
             var productDto = Mapper.Map<ProductDTO>(productPatched);
 
             return Ok(productDto);
@@ -81,7 +85,7 @@ namespace BazarCarioca.WebAPI.Controllers
         {
             var product = await Repository.GetByIdAsync(Id);
             var fileUrl = product.ImageUrl;
-            
+
             await WebService.DeleteFileAsync(fileUrl);
 
             await Repository.DeleteAsync(Id);

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BazarCarioca.WebAPI.Repositories
 {
-    public interface IProductRepository : IRepository<Product>, IImageRepository<Product>
+    public interface IProductRepository : IRepository<Product>, IImageRepository<Product, ProductUpdateDTO>
     {
         
     }
