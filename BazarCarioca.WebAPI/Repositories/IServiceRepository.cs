@@ -7,4 +7,3 @@ namespace BazarCarioca.WebAPI.Repositories
     {
     }
 }
-

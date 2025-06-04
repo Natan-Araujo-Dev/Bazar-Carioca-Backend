@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 
 namespace BazarCarioca.WebAPI.Controllers
 {
-    [Route("BazarCarioca/Produtos")]
+    [Route("Bazar-Carioca/Produtos")]
     [ApiController]
     public class ProductsController : ControllerBase
     {

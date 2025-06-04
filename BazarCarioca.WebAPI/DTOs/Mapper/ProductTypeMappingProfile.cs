@@ -1,14 +1,13 @@
 ﻿using AutoMapper;
-using BazarCarioca.WebAPI.DTOs;
 using BazarCarioca.WebAPI.Models;
 
 namespace BazarCarioca.WebAPI.DTOs.Mapper
 {
-    public class ServiceMappingProfile : Profile
+    public class ProductTypeMappingProfile : Profile
     {
-        public ServiceMappingProfile()
+        public ProductTypeMappingProfile() 
         {
-            CreateMap<Service, ServiceDTO>()
+            CreateMap<ProductType, ProductTypeDTO>()
                 .ReverseMap();
         }
     }

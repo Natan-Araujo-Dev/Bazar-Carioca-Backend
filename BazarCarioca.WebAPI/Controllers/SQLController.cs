@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BazarCarioca.WebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("Bazar-Carioca/SQL")]
     [ApiController]
     public class SQLController : ControllerBase
     {
@@ -19,7 +19,30 @@ namespace BazarCarioca.WebAPI.Controllers
             StoresController = _StoresController;
         }
 
-        [HttpPost]
+        [HttpPost("To-empty")]
+        public async Task<IActionResult> EmptyDataBase()
+        {
+            // Esses dois são apagados fora do SQL pois possuem imagens no WebService
+            await ProductsController.DeleteAll();
+            await StoresController.DeleteAll();
+
+            await DataBase.Database.ExecuteSqlRawAsync(
+                "-- Liberando a questão das keys antes de apagar\r\n" +
+                "SET FOREIGN_KEY_CHECKS = 0;\r\n\r\n" +
+                "-- Apagando em si\r\n" +
+                "TRUNCATE TABLE `Bazar-Carioca-AWS-RDS`.Shopkeepers;" +
+                "TRUNCATE TABLE `Bazar-Carioca-AWS-RDS`.Stores;" +
+                "TRUNCATE TABLE `Bazar-Carioca-AWS-RDS`.Services;\r\n" +
+                "TRUNCATE TABLE `Bazar-Carioca-AWS-RDS`.ProductTypes;\r\n" +
+                "TRUNCATE TABLE `Bazar-Carioca-AWS-RDS`.Products;" +
+                " -- Voltando ao normal\r\n" +
+                "SET FOREIGN_KEY_CHECKS = 1;"
+            );
+
+            return Ok("Tudo foi apagado, Ids voltaram ao 0.");
+        }
+
+        [HttpPost("Repopulate")]
         public async Task<IActionResult> RepopulateAll()
         {
             // Esses dois são apagados fora do SQL pois possuem imagens no WebService
@@ -116,7 +139,7 @@ namespace BazarCarioca.WebAPI.Controllers
                 "    ('Produtos de skincare', 9);\r\n\r\n\r\n"
             );
 
-            return Ok("Tudo foi apagado, Ids voltaram ao 0, e tudo foi repovoado");
+            return Ok("Tudo foi apagado, Ids voltaram ao 0, e tudo foi repovoado.");
         }
     }
 }

@@ -5,10 +5,11 @@ using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace BazarCarioca.WebAPI.Controllers
 {
-    [Route("BazarCarioca/Servicos")]
+    [Route("Bazar-Carioca/Servicos")]
     [ApiController]
     public class ServicesController : ControllerBase
     {
@@ -62,17 +63,22 @@ namespace BazarCarioca.WebAPI.Controllers
         //Só funciona com Postman
         [HttpPatch("{Id:int}")]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Patch(int Id, [FromForm] JsonPatchDocument request)
+        public async Task<IActionResult> Patch(int Id, [FromForm] String requestJson)
         {
-            if (request == null)
+            if (requestJson == null)
                 return BadRequest("Houve um erro na requisição HTTP. Informações não foram enviadas.");
 
-            var store = await Repository.GetByIdAsync(Id);
+            var request = JsonConvert.DeserializeObject<JsonPatchDocument<Service>>(requestJson);
 
-            //var UpdateDto = Mapper.Map
+            var service = await Repository.GetByIdAsync(Id);
+            if (service == null)
+                return BadRequest($"Não existe um serviço com o Id = {Id} para ser alterado.");
 
+            var patchedService = await Repository.UpdateAsync(service, request);
 
-            return Ok("foi");
+            var serviceDto = Mapper.Map<ServiceDTO>(service);
+
+            return Ok(serviceDto);
         }
 
         [HttpDelete("{Id:int}")]

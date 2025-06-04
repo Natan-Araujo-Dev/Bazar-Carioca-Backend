@@ -1,60 +1,84 @@
-﻿using BazarCarioca.WebAPI.Context;
+﻿using AutoMapper;
+using BazarCarioca.WebAPI.DTOs;
+using BazarCarioca.WebAPI.Extensions;
 using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace BazarCarioca.WebAPI.Controllers
 {
-    [Route("BazarCarioca/Lojistas")]
+    [Route("Bazar-Carioca/Lojistas")]
     [ApiController]
     public class ShopkeepersController : ControllerBase
     {
         private readonly IShopkeeperRepository Repository;
-        public ShopkeepersController(IShopkeeperRepository _Repository) 
+        private readonly IMapper Mapper;
+
+        public ShopkeepersController(IShopkeeperRepository _Repository, IMapper mapper)
         {
             Repository = _Repository;
+            Mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Shopkeeper>>> Get()
+        public async Task<IActionResult> Get()
         {
             var shopkeepers = await Repository.GetAsync();
-
+            if (shopkeepers.IsNullOrEmpty())
+                return NotFound("Nenhum lojista foi encontrado.");
             return Ok(shopkeepers);
         }
 
         [HttpGet("{Id:int}")]
-        public async Task<ActionResult<Shopkeeper>> GetById(int Id)
+        public async Task<IActionResult> GetById(int Id)
         {
             var shopkeeper = await Repository.GetByIdAsync(Id);
-
+            if (shopkeeper == null)
+                return NotFound($"O lojista com Id = {Id} não foi encontrado.");
             return Ok(shopkeeper);
         }
 
-        [HttpPost("Criar")]
-        public async Task<ActionResult<Shopkeeper>> Create(Shopkeeper shopkeeper)
+        [HttpPost]
+        public async Task<IActionResult> Create([FromForm] ShopkeeperDTO createDto)
         {
+            if (createDto == null)
+                return BadRequest("Nenhuma informação foi passada na requisição.");
+
+            var shopkeeper = Mapper.Map<Shopkeeper>(createDto);
             await Repository.AddAsync(shopkeeper);
 
-            return Ok(shopkeeper);
+            var shopkeeperDto = Mapper.Map<ShopkeeperDTO>(shopkeeper);
+            return Ok(shopkeeperDto);
         }
 
-        [HttpPut("Atualizar/{Id:int}")]
-        public async Task<ActionResult> Update(int Id, [FromBody] Shopkeeper shopkeeper)
+        [HttpPatch("{Id:int}")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Patch(int Id, [FromForm] string requestJson)
         {
-            await Repository.UpdateAsync(Id, shopkeeper);
+            if (requestJson == null)
+                return BadRequest("Houve um erro na requisição HTTP. Informações não foram enviadas.");
 
-            return Ok(shopkeeper);
+            var request = JsonConvert.DeserializeObject<JsonPatchDocument<Shopkeeper>>(requestJson);
+            var shopkeeper = await Repository.GetByIdAsync(Id);
+            if (shopkeeper == null)
+                return BadRequest($"Não existe um lojista com o Id = {Id} para ser alterado.");
+
+            var patchedShopkeeper = await Repository.UpdateAsync(shopkeeper, request);
+            var shopkeeperDto = Mapper.Map<ShopkeeperDTO>(shopkeeper);
+            return Ok(shopkeeperDto);
         }
 
-        [HttpDelete("Apagar/{Id:int}")]
-        public async Task<ActionResult<bool>> Delete(int Id)
+        [HttpDelete("{Id:int}")]
+        public async Task<IActionResult> Delete(int Id)
         {
+            var shopkeeper = await Repository.GetByIdAsync(Id);
+            if (shopkeeper == null)
+                return NotFound($"O lojista não foi apagado pois não existe um lojista com Id = {Id}.");
+
             await Repository.DeleteAsync(Id);
-
-            return Ok($"Lojista com id = {Id} apagado(/a).");
+            return Ok($"Lojista com id = {Id} foi apagado.");
         }
     }
 }

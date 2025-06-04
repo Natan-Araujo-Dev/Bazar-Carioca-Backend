@@ -1,5 +1,6 @@
 ﻿using BazarCarioca.WebAPI.Context;
 using BazarCarioca.WebAPI.Models;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 
 namespace BazarCarioca.WebAPI.Repositories
@@ -37,11 +38,13 @@ namespace BazarCarioca.WebAPI.Repositories
             await CommitAsync();
         }
 
-        public async Task UpdateAsync(int Id, Entity entity)
+        public async Task<Entity> UpdateAsync(Entity entity, JsonPatchDocument<Entity> request)
         {
-            DataBase.Entry(entity).State = EntityState.Modified;
-            DataBase.Set<Entity>().Update(entity);
+            request.ApplyTo(entity);
+
             await CommitAsync();
+
+            return entity;
         }
 
         public async Task DeleteAsync(int Id)

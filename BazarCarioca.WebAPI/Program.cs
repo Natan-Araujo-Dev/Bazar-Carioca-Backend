@@ -12,16 +12,16 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 #region services
 
-builder.Services.AddControllers();
-
 //JSON necessários para POST e PATCH
-builder.Services.AddControllers().AddNewtonsoftJson();
-builder.Services.AddControllers().AddJsonOptions(opts =>
-{
-    opts.JsonSerializerOptions.Converters.Add(
-        new System.Text.Json.Serialization.JsonStringEnumConverter()
-    );
-});
+builder.Services
+    .AddControllers()
+    .AddNewtonsoftJson()
+    .AddJsonOptions(opts =>
+    {
+        opts.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter()
+        );
+    });
 
 /* caso vá mudar o banco de dados, adicione mais uma string como a de baixo
 * (lembrando de mudar também em:
@@ -43,6 +43,7 @@ builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IProductTypeRepository, ProductTypeRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
+// Para o SQLController
 builder.Services.AddScoped<ProductsController>();
 builder.Services.AddScoped<StoresController>();
 
