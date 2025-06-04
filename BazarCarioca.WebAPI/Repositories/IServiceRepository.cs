@@ -1,4 +1,5 @@
-﻿using BazarCarioca.WebAPI.Models;
+﻿using BazarCarioca.WebAPI.DTOs;
+using BazarCarioca.WebAPI.Models;
 
 namespace BazarCarioca.WebAPI.Repositories
 {
@@ -6,3 +7,4 @@ namespace BazarCarioca.WebAPI.Repositories
     {
     }
 }
+

@@ -1,4 +1,5 @@
 using BazarCarioca.WebAPI.Context;
+using BazarCarioca.WebAPI.Controllers;
 using BazarCarioca.WebAPI.DTOs.Mapper;
 using BazarCarioca.WebAPI.Repositories;
 using BazarCarioca.WebAPI.Services;
@@ -41,6 +42,9 @@ builder.Services.AddScoped<IStoreRepository, StoreRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IProductTypeRepository, ProductTypeRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
+builder.Services.AddScoped<ProductsController>();
+builder.Services.AddScoped<StoresController>();
 
 // Automapper para conversão entre DTOs e Entidades
 builder.Services.AddAutoMapper(typeof(ProductMappingProfile));

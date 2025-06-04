@@ -1,5 +1,9 @@
-﻿using BazarCarioca.WebAPI.Models;
+﻿using AutoMapper;
+using BazarCarioca.WebAPI.DTOs;
+using BazarCarioca.WebAPI.Extensions;
+using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BazarCarioca.WebAPI.Controllers
@@ -9,52 +13,79 @@ namespace BazarCarioca.WebAPI.Controllers
     public class ServicesController : ControllerBase
     {
         private readonly IServiceRepository Repository;
+        private readonly IMapper Mapper;
 
-        public ServicesController(IServiceRepository repository)
+        public ServicesController(IServiceRepository _Repository, IMapper mapper)
         {
-            Repository = repository;
+            Repository = _Repository;
+            Mapper = mapper;
         }
 
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Store>>> Get()
+        public async Task<IActionResult> Get()
         {
             var services = await Repository.GetAsync();
+
+            if (services.IsNullOrEmpty())
+                return NotFound("Nenhum serviço foi encontrado.");
 
             return Ok(services);
         }
 
         [HttpGet("{Id:int}")]
-        public async Task<ActionResult<Service>> GetById(int Id)
+        public async Task<IActionResult> GetById(int Id)
         {
             var service = await Repository.GetByIdAsync(Id);
 
+            if (service == null)
+                return NotFound($"O serviço com Id = {Id} não foi encontrado.");
+
             return Ok(service);
         }
 
-        [HttpPost("Criar")]
-        public async Task<ActionResult<Service>> CreateStore([FromBody] Service service)
+        [HttpPost]
+        public async Task<IActionResult> Create([FromForm] ServiceDTO createDto)
         {
+            if (createDto == null)
+                return BadRequest("Nenhuma informação foi passada na requisição.");
+
+            var service = Mapper.Map<Service>(createDto);
+
             await Repository.AddAsync(service);
 
-            return Ok(service);
+            var serviceDto = Mapper.Map<Store>(service);
+
+            return Ok(serviceDto);
         }
 
-        [HttpPut("Atualizar/{Id:int}")]
-        public async Task<ActionResult<Store>> FullUpdate(int Id, [FromBody] Service service)
+        //Só funciona com Postman
+        [HttpPatch("{Id:int}")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Patch(int Id, [FromForm] JsonPatchDocument request)
         {
-            service.Id = Id;
-            await Repository.UpdateAsync(Id, service);
+            if (request == null)
+                return BadRequest("Houve um erro na requisição HTTP. Informações não foram enviadas.");
 
-            return Ok(service);
+            var store = await Repository.GetByIdAsync(Id);
+
+            //var UpdateDto = Mapper.Map
+
+
+            return Ok("foi");
         }
 
-        [HttpDelete("Apagar/{Id:int}")]
-        public async Task<ActionResult<bool>> DeleteStore(int Id)
+        [HttpDelete("{Id:int}")]
+        public async Task<IActionResult> Delete(int Id)
         {
+            var Service = await Repository.GetByIdAsync(Id);
+
+            if (Service == null)
+                return NotFound($"O serviço não foi apagado pois não existe um serviço com Id = {Id}.");
+
             await Repository.DeleteAsync(Id);
 
-            return Ok($"Serviço com id = {Id} apagado.");
+            return Ok($"A loja com id = {Id} foi apagada.");
         }
     }
 }

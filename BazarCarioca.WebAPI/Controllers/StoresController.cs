@@ -4,9 +4,7 @@ using BazarCarioca.WebAPI.Extensions;
 using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
 using BazarCarioca.WebAPI.Services;
-using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 
 namespace BazarCarioca.WebAPI.Controllers
 {
@@ -48,7 +46,7 @@ namespace BazarCarioca.WebAPI.Controllers
         }
 
         [HttpGet("Lojista/{Id:int}")]
-        public async Task<IActionResult> GetStoresByShopkeeperId(int Id)
+        public async Task<IActionResult> GetByShopkeeperId(int Id)
         {
             var stores = await Repository.GetByShopkeeperIdAsync(Id);
 
@@ -107,6 +105,38 @@ namespace BazarCarioca.WebAPI.Controllers
             await Repository.DeleteAsync(Id);
 
             return Ok($"A loja com id = {Id} foi apagada.");
+        }
+
+        /// <summary>
+        /// Método somente para desenvolvimento. NÂO implemente.
+        /// </summary>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<IActionResult> DeleteAll()
+        {
+            var stores = await Repository.GetAsync();
+
+            if (stores.IsNullOrEmpty())
+                return NotFound("Nenhuma loja foi apagada pois não existem lojas cadastradas.");
+
+            var ids = new List<int>();
+            var imageUrls = new List<string>();
+
+            foreach (var store in stores)
+            {
+                ids.Add(store.Id);
+                imageUrls.Add(store.ImageUrl);
+            }
+
+            for (int i = 0; i < ids.Count; i++)
+            {
+                if (imageUrls[i] != null)
+                    await WebService.DeleteFileAsync(imageUrls[i]);
+
+                await Repository.DeleteAsync(ids[i]);
+            }
+
+            return Ok("Todos lojas e suas imagens foram apagadas.");
         }
     }
 }

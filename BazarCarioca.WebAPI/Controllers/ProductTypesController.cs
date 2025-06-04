@@ -16,7 +16,7 @@ namespace BazarCarioca.WebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductType>>> Get()
+        public async Task<IActionResult> Get()
         {
             var productTypes = await Repository.GetAsync();
 
