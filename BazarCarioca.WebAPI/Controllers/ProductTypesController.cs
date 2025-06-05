@@ -13,19 +13,19 @@ namespace BazarCarioca.WebAPI.Controllers
     [ApiController]
     public class ProductTypeController : ControllerBase
     {
-        private readonly IProductTypeRepository Repository;
+        private readonly IUnitOfWork UnityOfWork;
         private readonly IMapper Mapper;
 
-        public ProductTypeController(IProductTypeRepository _Repository, IMapper mapper)
+        public ProductTypeController(IUnitOfWork _UnitOfWork, IMapper mapper)
         {
-            Repository = _Repository;
+            UnityOfWork = _UnitOfWork;
             Mapper = mapper;
         }
 
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var productTypes = await Repository.GetAsync();
+            var productTypes = await UnityOfWork.ProductTypeRepository.GetAsync();
             if (productTypes.IsNullOrEmpty())
                 return NotFound("Nenhum tipo de produto foi encontrado.");
             return Ok(productTypes);
@@ -34,7 +34,7 @@ namespace BazarCarioca.WebAPI.Controllers
         [HttpGet("{Id:int}")]
         public async Task<IActionResult> GetById(int Id)
         {
-            var productType = await Repository.GetByIdAsync(Id);
+            var productType = await UnityOfWork.ProductTypeRepository.GetByIdAsync(Id);
             if (productType == null)
                 return NotFound($"O tipo de produto com Id = {Id} não foi encontrado.");
             return Ok(productType);
@@ -47,7 +47,9 @@ namespace BazarCarioca.WebAPI.Controllers
                 return BadRequest("Nenhuma informação foi passada na requisição.");
 
             var productType = Mapper.Map<ProductType>(createDto);
-            await Repository.AddAsync(productType);
+
+            await UnityOfWork.ProductTypeRepository.AddAsync(productType);
+            await UnityOfWork.CommitAsync();
 
             var productTypeDto = Mapper.Map<ProductTypeDTO>(productType);
             return Ok(productTypeDto);
@@ -61,11 +63,13 @@ namespace BazarCarioca.WebAPI.Controllers
                 return BadRequest("Houve um erro na requisição HTTP. Informações não foram enviadas.");
 
             var request = JsonConvert.DeserializeObject<JsonPatchDocument<ProductType>>(requestJson);
-            var productType = await Repository.GetByIdAsync(Id);
+            var productType = await UnityOfWork.ProductTypeRepository.GetByIdAsync(Id);
             if (productType == null)
                 return BadRequest($"Não existe um tipo de produto com o Id = {Id} para ser alterado.");
 
-            var patchedProductType = await Repository.UpdateAsync(productType, request);
+            var patchedProductType = await UnityOfWork.ProductTypeRepository.UpdateAsync(productType, request);
+            await UnityOfWork.CommitAsync();
+
             var productTypeDto = Mapper.Map<ProductTypeDTO>(productType);
             return Ok(productTypeDto);
         }
@@ -73,11 +77,13 @@ namespace BazarCarioca.WebAPI.Controllers
         [HttpDelete("{Id:int}")]
         public async Task<IActionResult> Delete(int Id)
         {
-            var productType = await Repository.GetByIdAsync(Id);
+            var productType = await UnityOfWork.ProductTypeRepository.GetByIdAsync(Id);
             if (productType == null)
                 return NotFound($"O tipo de produto não foi apagado pois não existe um tipo de produto com Id = {Id}.");
 
-            await Repository.DeleteAsync(Id);
+            await UnityOfWork.ProductTypeRepository.DeleteAsync(Id);
+            await UnityOfWork.CommitAsync();
+
             return Ok($"Tipo de produto com id = {Id} foi apagado.");
         }
     }

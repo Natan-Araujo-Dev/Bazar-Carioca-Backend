@@ -17,13 +17,13 @@ namespace BazarCarioca.WebAPI.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly IProductRepository Repository;
+        private readonly IUnitOfWork UnitOfWork;
         private readonly IWebService WebService;
         private readonly IMapper Mapper;
 
-        public ProductsController(IProductRepository repository, IWebService webService, IMapper mapper)
+        public ProductsController(IUnitOfWork _UnitOfWork, IWebService webService, IMapper mapper)
         {
-            Repository = repository;
+            UnitOfWork = _UnitOfWork;
             WebService = webService;
             Mapper = mapper;
         }
@@ -33,7 +33,7 @@ namespace BazarCarioca.WebAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var products = await Repository.GetAsync();
+            var products = await UnitOfWork.ProductRepository.GetAsync();
 
             if (products.IsNullOrEmpty())
                 return NotFound("Nenhum produto foi encotrado.");
@@ -46,7 +46,7 @@ namespace BazarCarioca.WebAPI.Controllers
         [HttpGet("{Id:int}")]
         public async Task<IActionResult> GetById(int Id)
         {
-            var product = await Repository.GetByIdAsync(Id);
+            var product = await UnitOfWork.ProductRepository.GetByIdAsync(Id);
 
             if (product == null)
                 return NotFound($"O produto com Id = {Id} não foi encontrado.");
@@ -65,9 +65,15 @@ namespace BazarCarioca.WebAPI.Controllers
             var product = Mapper.Map<Product>(createDto);
 
             if (createDto.File != null)
-                product = await Repository.AddWithImageAsync(product, createDto.File);
+            {
+                product = await UnitOfWork.ProductRepository.AddWithImageAsync(product, createDto.File);
+                await UnitOfWork.CommitAsync();
+            }
             else
-                await Repository.AddAsync(product);
+            {
+                await UnitOfWork.ProductRepository.AddAsync(product);
+                await UnitOfWork.CommitAsync();
+            }
 
             var productDto = Mapper.Map<ProductDTO>(product);
 
@@ -82,7 +88,8 @@ namespace BazarCarioca.WebAPI.Controllers
             if (requestDto == null)
                 return BadRequest("Houve um erro na requisição HTTP. Informações não foram enviadas.");
 
-            var productPatched = await Repository.UpdateWithImageAsync(Id, requestDto);
+            var productPatched = await UnitOfWork.ProductRepository.UpdateWithImageAsync(Id, requestDto);
+            await UnitOfWork.CommitAsync();
 
             var productDto = Mapper.Map<ProductDTO>(productPatched);
 
@@ -92,7 +99,7 @@ namespace BazarCarioca.WebAPI.Controllers
         [HttpDelete("{Id:int}")]
         public async Task<IActionResult> Delete(int Id)
         {
-            var product = await Repository.GetByIdAsync(Id);
+            var product = await UnitOfWork.ProductRepository.GetByIdAsync(Id);
 
             if (product == null)
                 return NotFound($"O produto não foi apagado pois não existe um produto com Id = {Id}.");
@@ -102,7 +109,8 @@ namespace BazarCarioca.WebAPI.Controllers
             if (fileUrl != null)
                 await WebService.DeleteFileAsync(fileUrl);
 
-            await Repository.DeleteAsync(Id);
+            await UnitOfWork.ProductRepository.DeleteAsync(Id);
+            await UnitOfWork.CommitAsync();
 
             return Ok($"O produto com id = {Id} apagado.");
         }
@@ -114,7 +122,7 @@ namespace BazarCarioca.WebAPI.Controllers
         [HttpDelete]
         public async Task<IActionResult> DeleteAll()
         {
-            var products = await Repository.GetAsync();
+            var products = await UnitOfWork.ProductRepository.GetAsync();
 
             if (products.IsNullOrEmpty())
                 return NotFound("Nenhum produto foi apagado pois não existem produtos cadastrados.");
@@ -133,7 +141,8 @@ namespace BazarCarioca.WebAPI.Controllers
                 if (imageUrls[i] != null)
                     await WebService.DeleteFileAsync(imageUrls[i]);
 
-                await Repository.DeleteAsync(ids[i]);
+                await UnitOfWork.ProductRepository.DeleteAsync(ids[i]);
+                await UnitOfWork.CommitAsync();
             }
 
             return Ok("Todos produtos e suas imagens foram apagadas.");

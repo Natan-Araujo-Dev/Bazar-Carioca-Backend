@@ -35,14 +35,14 @@ namespace BazarCarioca.WebAPI.Repositories
         public async Task AddAsync(Entity entity)
         {
             await DataBase.Set<Entity>().AddAsync(entity);
-            await CommitAsync();
+            //await CommitAsync();
         }
 
         public async Task<Entity> UpdateAsync(Entity entity, JsonPatchDocument<Entity> request)
         {
             request.ApplyTo(entity);
 
-            await CommitAsync();
+            //await CommitAsync();
 
             return entity;
         }
@@ -51,7 +51,8 @@ namespace BazarCarioca.WebAPI.Repositories
         {
             var entity = await DataBase.Set<Entity>().FindAsync(Id);
             DataBase.Set<Entity>().Remove(entity);
-            await CommitAsync();
+
+            //await CommitAsync();
         }
 
         public async Task CommitAsync()

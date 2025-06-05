@@ -13,19 +13,19 @@ namespace BazarCarioca.WebAPI.Controllers
     [ApiController]
     public class ShopkeepersController : ControllerBase
     {
-        private readonly IShopkeeperRepository Repository;
+        private readonly IUnitOfWork UnitOfWork;
         private readonly IMapper Mapper;
 
-        public ShopkeepersController(IShopkeeperRepository _Repository, IMapper mapper)
+        public ShopkeepersController(IUnitOfWork _UnitOfWork, IMapper mapper)
         {
-            Repository = _Repository;
+            UnitOfWork = _UnitOfWork;
             Mapper = mapper;
         }
 
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var shopkeepers = await Repository.GetAsync();
+            var shopkeepers = await UnitOfWork.ShopkeeperRepository.GetAsync();
             if (shopkeepers.IsNullOrEmpty())
                 return NotFound("Nenhum lojista foi encontrado.");
             return Ok(shopkeepers);
@@ -34,7 +34,7 @@ namespace BazarCarioca.WebAPI.Controllers
         [HttpGet("{Id:int}")]
         public async Task<IActionResult> GetById(int Id)
         {
-            var shopkeeper = await Repository.GetByIdAsync(Id);
+            var shopkeeper = await UnitOfWork.ShopkeeperRepository.GetByIdAsync(Id);
             if (shopkeeper == null)
                 return NotFound($"O lojista com Id = {Id} não foi encontrado.");
             return Ok(shopkeeper);
@@ -47,7 +47,8 @@ namespace BazarCarioca.WebAPI.Controllers
                 return BadRequest("Nenhuma informação foi passada na requisição.");
 
             var shopkeeper = Mapper.Map<Shopkeeper>(createDto);
-            await Repository.AddAsync(shopkeeper);
+            await UnitOfWork.ShopkeeperRepository.AddAsync(shopkeeper);
+            await UnitOfWork.CommitAsync();
 
             var shopkeeperDto = Mapper.Map<ShopkeeperDTO>(shopkeeper);
             return Ok(shopkeeperDto);
@@ -61,11 +62,12 @@ namespace BazarCarioca.WebAPI.Controllers
                 return BadRequest("Houve um erro na requisição HTTP. Informações não foram enviadas.");
 
             var request = JsonConvert.DeserializeObject<JsonPatchDocument<Shopkeeper>>(requestJson);
-            var shopkeeper = await Repository.GetByIdAsync(Id);
+            var shopkeeper = await UnitOfWork.ShopkeeperRepository.GetByIdAsync(Id);
             if (shopkeeper == null)
                 return BadRequest($"Não existe um lojista com o Id = {Id} para ser alterado.");
 
-            var patchedShopkeeper = await Repository.UpdateAsync(shopkeeper, request);
+            var patchedShopkeeper = await UnitOfWork.ShopkeeperRepository.UpdateAsync(shopkeeper, request);
+            await UnitOfWork.CommitAsync();
             var shopkeeperDto = Mapper.Map<ShopkeeperDTO>(shopkeeper);
             return Ok(shopkeeperDto);
         }
@@ -73,11 +75,13 @@ namespace BazarCarioca.WebAPI.Controllers
         [HttpDelete("{Id:int}")]
         public async Task<IActionResult> Delete(int Id)
         {
-            var shopkeeper = await Repository.GetByIdAsync(Id);
+            var shopkeeper = await UnitOfWork.ShopkeeperRepository.GetByIdAsync(Id);
             if (shopkeeper == null)
                 return NotFound($"O lojista não foi apagado pois não existe um lojista com Id = {Id}.");
 
-            await Repository.DeleteAsync(Id);
+            await UnitOfWork.ShopkeeperRepository.DeleteAsync(Id);
+            await UnitOfWork.CommitAsync();
+
             return Ok($"Lojista com id = {Id} foi apagado.");
         }
     }

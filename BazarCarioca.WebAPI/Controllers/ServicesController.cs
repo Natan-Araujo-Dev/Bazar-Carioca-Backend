@@ -13,12 +13,12 @@ namespace BazarCarioca.WebAPI.Controllers
     [ApiController]
     public class ServicesController : ControllerBase
     {
-        private readonly IServiceRepository Repository;
+        private readonly IUnitOfWork UnitOfWork;
         private readonly IMapper Mapper;
 
-        public ServicesController(IServiceRepository _Repository, IMapper mapper)
+        public ServicesController(IUnitOfWork _UnitOfWork, IMapper mapper)
         {
-            Repository = _Repository;
+            UnitOfWork = _UnitOfWork;
             Mapper = mapper;
         }
 
@@ -26,7 +26,7 @@ namespace BazarCarioca.WebAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var services = await Repository.GetAsync();
+            var services = await UnitOfWork.ServiceRepository.GetAsync();
 
             if (services.IsNullOrEmpty())
                 return NotFound("Nenhum serviço foi encontrado.");
@@ -37,7 +37,7 @@ namespace BazarCarioca.WebAPI.Controllers
         [HttpGet("{Id:int}")]
         public async Task<IActionResult> GetById(int Id)
         {
-            var service = await Repository.GetByIdAsync(Id);
+            var service = await UnitOfWork.ServiceRepository.GetByIdAsync(Id);
 
             if (service == null)
                 return NotFound($"O serviço com Id = {Id} não foi encontrado.");
@@ -53,7 +53,8 @@ namespace BazarCarioca.WebAPI.Controllers
 
             var service = Mapper.Map<Service>(createDto);
 
-            await Repository.AddAsync(service);
+            await UnitOfWork.ServiceRepository.AddAsync(service);
+            await UnitOfWork.CommitAsync();
 
             var serviceDto = Mapper.Map<Store>(service);
 
@@ -70,11 +71,12 @@ namespace BazarCarioca.WebAPI.Controllers
 
             var request = JsonConvert.DeserializeObject<JsonPatchDocument<Service>>(requestJson);
 
-            var service = await Repository.GetByIdAsync(Id);
+            var service = await UnitOfWork.ServiceRepository.GetByIdAsync(Id);
             if (service == null)
                 return BadRequest($"Não existe um serviço com o Id = {Id} para ser alterado.");
 
-            var patchedService = await Repository.UpdateAsync(service, request);
+            var patchedService = await UnitOfWork.ServiceRepository.UpdateAsync(service, request);
+            await UnitOfWork.CommitAsync();
 
             var serviceDto = Mapper.Map<ServiceDTO>(service);
 
@@ -84,12 +86,13 @@ namespace BazarCarioca.WebAPI.Controllers
         [HttpDelete("{Id:int}")]
         public async Task<IActionResult> Delete(int Id)
         {
-            var Service = await Repository.GetByIdAsync(Id);
+            var Service = await UnitOfWork.ServiceRepository.GetByIdAsync(Id);
 
             if (Service == null)
                 return NotFound($"O serviço não foi apagado pois não existe um serviço com Id = {Id}.");
 
-            await Repository.DeleteAsync(Id);
+            await UnitOfWork.ServiceRepository.DeleteAsync(Id);
+            await UnitOfWork.CommitAsync();
 
             return Ok($"A loja com id = {Id} foi apagada.");
         }

@@ -13,7 +13,6 @@ namespace BazarCarioca.WebAPI.Repositories
 {
     public class ProductRepository : ImageRepository<Product, ProductUpdateDTO>, IProductRepository
     {
-        // Erro AQUI
         public ProductRepository(AppDbContext _DataBase, IWebService _WebService, IMapper _Mapper) :
             base(_DataBase, _WebService, _Mapper)
         {
