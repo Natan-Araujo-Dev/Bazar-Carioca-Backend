@@ -9,6 +9,12 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Para funcionar fora do servidor local
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(5000);
+});
+
 // Add services to the container.
 #region services
 
@@ -69,7 +75,8 @@ if (app.Environment.IsDevelopment())
 
 // Configure the HTTP request pipeline.
 
-app.UseHttpsRedirection();
+// Linha comentada pois HTTPS não está configurado no servidor
+//app.UseHttpsRedirection();
 
 app.UseRouting();
 app.UseAuthentication();
