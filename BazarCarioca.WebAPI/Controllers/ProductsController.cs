@@ -1,15 +1,11 @@
 ﻿using AutoMapper;
-using BazarCarioca.WebAPI.DTOs;
-using BazarCarioca.WebAPI.DTOs.Mapper;
+using BazarCarioca.WebAPI.DTOs.Entities;
 using BazarCarioca.WebAPI.Extensions;
 using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
 using BazarCarioca.WebAPI.Services;
-using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Newtonsoft.Json;
 
 namespace BazarCarioca.WebAPI.Controllers
 {

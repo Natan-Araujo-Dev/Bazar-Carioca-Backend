@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace BazarCarioca.WebAPI.DTOs
+namespace BazarCarioca.WebAPI.DTOs.Entities
 {
     public class ShopkeeperDTO
     {

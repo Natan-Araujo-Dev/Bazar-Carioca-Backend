@@ -1,4 +1,4 @@
-﻿using BazarCarioca.WebAPI.DTOs;
+﻿using BazarCarioca.WebAPI.DTOs.Entities;
 
 namespace BazarCarioca.WebAPI.Repositories
 {

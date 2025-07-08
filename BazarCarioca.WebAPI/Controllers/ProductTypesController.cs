@@ -1,8 +1,9 @@
 ﻿using AutoMapper;
-using BazarCarioca.WebAPI.DTOs;
+using BazarCarioca.WebAPI.DTOs.Entities;
 using BazarCarioca.WebAPI.Extensions;
 using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -10,6 +11,7 @@ using Newtonsoft.Json;
 namespace BazarCarioca.WebAPI.Controllers
 {
     [Route("Bazar-Carioca/Tipos-de-Produtos")]
+
     [ApiController]
     public class ProductTypeController : ControllerBase
     {
@@ -21,6 +23,7 @@ namespace BazarCarioca.WebAPI.Controllers
             UnityOfWork = _UnitOfWork;
             Mapper = mapper;
         }
+
 
         [HttpGet]
         public async Task<IActionResult> Get()

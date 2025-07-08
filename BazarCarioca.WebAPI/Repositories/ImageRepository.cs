@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using BazarCarioca.WebAPI.Context;
-using BazarCarioca.WebAPI.DTOs;
+using BazarCarioca.WebAPI.DTOs.Entities;
 using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Services;
 using Microsoft.AspNetCore.JsonPatch;

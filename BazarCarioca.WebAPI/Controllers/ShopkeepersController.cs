@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using BazarCarioca.WebAPI.DTOs;
+using BazarCarioca.WebAPI.DTOs.Entities;
 using BazarCarioca.WebAPI.Extensions;
 using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;

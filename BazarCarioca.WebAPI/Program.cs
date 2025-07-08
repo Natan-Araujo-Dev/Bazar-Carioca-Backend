@@ -1,9 +1,14 @@
 using BazarCarioca.WebAPI.Context;
 using BazarCarioca.WebAPI.Controllers;
 using BazarCarioca.WebAPI.DTOs.Mapper;
+using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
 using BazarCarioca.WebAPI.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 
 
@@ -39,7 +44,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         ServerVersion.AutoDetect(MySqlConnection))
 );
 
-// Registrando o web service
+// Registrando o Web Service
 builder.Services.AddScoped<IWebService, S3Service>();
 
 // Registrando os Repositories
@@ -54,11 +59,47 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ProductsController>();
 builder.Services.AddScoped<StoresController>();
 
+// Para a autênticação JWT
+builder.Services.AddScoped<ITokenService, TokenService>();
+
 // Automapper para conversão entre DTOs e Entidades
 builder.Services.AddAutoMapper(typeof(ProductMappingProfile));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+//Autorização/autenticação
+builder.Services.AddAuthorization();
+builder.Services.AddAuthentication("Bearer").AddJwtBearer();
+
+builder.Services.AddIdentity<ApplicationUser , IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
+
+var secretKey = builder.Configuration["JWT:SecretKey"]
+    ?? throw new ArgumentException("Invalid secret key.");
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = false;
+    options.TokenValidationParameters = new TokenValidationParameters()
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ClockSkew = TimeSpan.Zero,
+        ValidAudience = builder.Configuration["JWT:ValidAudience"],
+        ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+    };
+});
+
 
 #endregion
 

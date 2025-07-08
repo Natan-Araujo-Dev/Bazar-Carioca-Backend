@@ -1,4 +1,4 @@
-﻿using BazarCarioca.WebAPI.DTOs;
+﻿using BazarCarioca.WebAPI.DTOs.Entities;
 using BazarCarioca.WebAPI.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;

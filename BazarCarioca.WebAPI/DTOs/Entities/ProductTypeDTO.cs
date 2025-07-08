@@ -1,6 +1,6 @@
 ﻿using BazarCarioca.WebAPI.Models;
 
-namespace BazarCarioca.WebAPI.DTOs
+namespace BazarCarioca.WebAPI.DTOs.Entities
 {
     public class ProductTypeDTO
     {

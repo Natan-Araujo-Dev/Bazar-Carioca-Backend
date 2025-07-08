@@ -1,6 +1,8 @@
-﻿namespace BazarCarioca.WebAPI.DTOs
+﻿using BazarCarioca.WebAPI.Models;
+
+namespace BazarCarioca.WebAPI.DTOs.Entities
 {
-    public class ProductCreateDTO
+    public class ProductDTO
     {
         public int ProductTypeId { get; set; }
 
@@ -8,7 +10,7 @@
 
         public decimal Price { get; set; }
 
-        public IFormFile? File { get; set; }
+        public string? ImageUrl { get; set; }
 
         public int? Stock { get; set; }
 
