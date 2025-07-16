@@ -1,10 +1,11 @@
 ﻿using BazarCarioca.WebAPI.Context;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace BazarCarioca.WebAPI.Controllers
 {
-    [Route("Bazar-Carioca/SQL")]
+    [Route("bazar-Carioca/sql")]
     [ApiController]
     public class SQLController : ControllerBase
     {
@@ -19,7 +20,9 @@ namespace BazarCarioca.WebAPI.Controllers
             StoresController = _StoresController;
         }
 
-        [HttpPost("To-empty")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        [HttpPost]
+        [Route("to-empty")]
         public async Task<IActionResult> EmptyDataBase()
         {
             // Esses dois são apagados fora do SQL pois possuem imagens no WebService
@@ -42,7 +45,9 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok("Tudo foi apagado, Ids voltaram ao 0.");
         }
 
-        [HttpPost("Repopulate")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        [HttpPost]
+        [Route("repopulate")]
         public async Task<IActionResult> RepopulateAll()
         {
             // Esses dois são apagados fora do SQL pois possuem imagens no WebService

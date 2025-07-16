@@ -3,35 +3,44 @@ using BazarCarioca.WebAPI.DTOs.Entities;
 using BazarCarioca.WebAPI.Extensions;
 using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
+using BazarCarioca.WebAPI.Validation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
 namespace BazarCarioca.WebAPI.Controllers
 {
-    [Route("Bazar-Carioca/Lojistas")]
+    [Route("bazar-carioca/lojistas")]
     [ApiController]
+    //[Authorize]
     public class ShopkeepersController : ControllerBase
     {
         private readonly IUnitOfWork UnitOfWork;
         private readonly IMapper Mapper;
+        private readonly IUserValidate UserValidate;
 
-        public ShopkeepersController(IUnitOfWork _UnitOfWork, IMapper mapper)
+        public ShopkeepersController(IUnitOfWork _UnitOfWork, IMapper mapper, IUserValidate _UserValidate)
         {
             UnitOfWork = _UnitOfWork;
             Mapper = mapper;
+            UserValidate = _UserValidate;
         }
 
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpGet]
         public async Task<IActionResult> Get()
         {
             var shopkeepers = await UnitOfWork.ShopkeeperRepository.GetAsync();
             if (shopkeepers.IsNullOrEmpty())
                 return NotFound("Nenhum lojista foi encontrado.");
+
             return Ok(shopkeepers);
         }
 
-        [HttpGet("{Id:int}")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        [HttpGet]
+        [Route("{Id:int}")]
         public async Task<IActionResult> GetById(int Id)
         {
             var shopkeeper = await UnitOfWork.ShopkeeperRepository.GetByIdAsync(Id);
@@ -54,7 +63,9 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(shopkeeperDto);
         }
 
-        [HttpPatch("{Id:int}")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        [HttpPatch]
+        [Route("{Id:int}")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Patch(int Id, [FromForm] string requestJson)
         {
@@ -72,10 +83,22 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(shopkeeperDto);
         }
 
-        [HttpDelete("{Id:int}")]
+        [Authorize(Roles = "SuperAdmin,Admin,Shopkeeper")]
+        [HttpDelete]
+        [Route("{Id:int}")]
         public async Task<IActionResult> Delete(int Id)
         {
+            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
             var shopkeeper = await UnitOfWork.ShopkeeperRepository.GetByIdAsync(Id);
+            var isOwner = await UserValidate.IsOwner(userEmail, shopkeeper);
+
+            if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
+            && User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "Admin"
+            && !isOwner)
+            {
+                return Unauthorized("Você não tem autorização para alterar esta loja.");
+            }
+
             if (shopkeeper == null)
                 return NotFound($"O lojista não foi apagado pois não existe um lojista com Id = {Id}.");
 

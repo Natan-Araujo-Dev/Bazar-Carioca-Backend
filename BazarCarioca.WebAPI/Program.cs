@@ -4,10 +4,12 @@ using BazarCarioca.WebAPI.DTOs.Mapper;
 using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
 using BazarCarioca.WebAPI.Services;
+using BazarCarioca.WebAPI.Validation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 
@@ -26,7 +28,9 @@ builder.WebHost.ConfigureKestrel(options =>
 //JSON necessários para POST e PATCH
 builder.Services
     .AddControllers()
-    .AddNewtonsoftJson()
+    .AddNewtonsoftJson(options =>
+        options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+    )
     .AddJsonOptions(opts =>
     {
         opts.JsonSerializerOptions.Converters.Add(
@@ -62,15 +66,40 @@ builder.Services.AddScoped<StoresController>();
 // Para a autênticação JWT
 builder.Services.AddScoped<ITokenService, TokenService>();
 
+builder.Services.AddScoped<IUserValidate, UserValidate>();
+
 // Automapper para conversão entre DTOs e Entidades
 builder.Services.AddAutoMapper(typeof(ProductMappingProfile));
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 //Autorização/autenticação
-builder.Services.AddAuthorization();
-builder.Services.AddAuthentication("Bearer").AddJwtBearer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Bearer JWT ",
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+   });
+});
 
 builder.Services.AddIdentity<ApplicationUser , IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
@@ -100,6 +129,24 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy
+    .RequireRole("Admin"));
+
+    options.AddPolicy("SuperAdminOnly", policy => policy
+        .RequireRole("Admin")
+        .RequireClaim("id", "Natan"));
+
+    options.AddPolicy("ExclusivePolicyOnly", policy =>
+    {
+        policy.RequireAssertion(context => 
+            context.User.HasClaim(Claim => Claim.Type == "id" && Claim.Value=="Natan")
+            || context.User.IsInRole("SuperAdmin"));
+    });
+});
+
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 #endregion
 
@@ -120,7 +167,7 @@ if (app.Environment.IsDevelopment())
 //app.UseHttpsRedirection();
 
 app.UseRouting();
-app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();

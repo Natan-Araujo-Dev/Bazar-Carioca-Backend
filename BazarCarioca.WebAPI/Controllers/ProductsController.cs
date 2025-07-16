@@ -4,24 +4,28 @@ using BazarCarioca.WebAPI.Extensions;
 using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
 using BazarCarioca.WebAPI.Services;
+using BazarCarioca.WebAPI.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BazarCarioca.WebAPI.Controllers
 {
-    [Route("Bazar-Carioca/Produtos")]
+    [Route("bazar-carioca/produtos")]
     [ApiController]
     public class ProductsController : ControllerBase
     {
         private readonly IUnitOfWork UnitOfWork;
         private readonly IWebService WebService;
         private readonly IMapper Mapper;
+        private readonly IUserValidate UserValidate;
 
-        public ProductsController(IUnitOfWork _UnitOfWork, IWebService webService, IMapper mapper)
+        public ProductsController(IUnitOfWork _UnitOfWork, IWebService webService, IMapper mapper,
+            IUserValidate _UserValidate)
         {
             UnitOfWork = _UnitOfWork;
             WebService = webService;
             Mapper = mapper;
+            UserValidate = _UserValidate;
         }
 
 
@@ -39,7 +43,8 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(productsDTO);
         }
 
-        [HttpGet("{Id:int}")]
+        [HttpGet]
+        [Route("{Id:int}")]
         public async Task<IActionResult> GetById(int Id)
         {
             var product = await UnitOfWork.ProductRepository.GetByIdAsync(Id);
@@ -52,6 +57,7 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(productDTO);
         }
 
+        [Authorize(Roles = "SuperAdmin,Admin,Shopkeeper")]
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] ProductCreateDTO createDto)
         {
@@ -77,10 +83,23 @@ namespace BazarCarioca.WebAPI.Controllers
         }
 
         //Só funciona com Postman por causa do JSON de PATCH
-        [HttpPatch("{Id:int}")]
+        [Authorize(Roles = "SuperAdmin,Admin,Shopkeeper")]
+        [HttpPatch]
+        [Route("{Id:int}")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Patch(int Id, [FromForm] PatchRequestDTO requestDto)
         {
+            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var product = await UnitOfWork.ProductTypeRepository.GetByIdAsync(Id);
+            var isOwner = await UserValidate.IsOwner(userEmail, product);
+
+            if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
+            && User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "Admin"
+            && !isOwner)
+            {
+                return Unauthorized("Você não tem autorização para alterar esta loja.");
+            }
+
             if (requestDto == null)
                 return BadRequest("Houve um erro na requisição HTTP. Informações não foram enviadas.");
 
@@ -92,10 +111,21 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(productDto);
         }
 
-        [HttpDelete("{Id:int}")]
+        [Authorize(Roles = "SuperAdmin,Admin,Shopkeeper")]
+        [HttpDelete]
+        [Route("{Id:int}")]
         public async Task<IActionResult> Delete(int Id)
         {
+            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
             var product = await UnitOfWork.ProductRepository.GetByIdAsync(Id);
+            var isOwner = await UserValidate.IsOwner(userEmail, product);
+
+            if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
+            && User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "Admin"
+            && !isOwner)
+            {
+                return Unauthorized("Você não tem autorização para alterar esta loja.");
+            }
 
             if (product == null)
                 return NotFound($"O produto não foi apagado pois não existe um produto com Id = {Id}.");
@@ -115,6 +145,7 @@ namespace BazarCarioca.WebAPI.Controllers
         /// Método somente para desenvolvimento. NÂO implemente.
         /// </summary>
         /// <returns></returns>
+        [Authorize(Roles = "SuperAdmin,Admin,Shopkeeper")]
         [HttpDelete]
         public async Task<IActionResult> DeleteAll()
         {

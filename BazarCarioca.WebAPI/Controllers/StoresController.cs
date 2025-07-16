@@ -4,23 +4,28 @@ using BazarCarioca.WebAPI.Extensions;
 using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
 using BazarCarioca.WebAPI.Services;
+using BazarCarioca.WebAPI.Validation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BazarCarioca.WebAPI.Controllers
 {
-    [Route("Bazar-Carioca/Lojas")]
+    [Route("bazar-carioca/lojas")]
     [ApiController]
     public class StoresController : ControllerBase
     {
         private readonly IUnitOfWork UnitOfWork;
         private readonly IWebService WebService;
         private readonly IMapper Mapper;
+        private readonly IUserValidate UserValidate;
 
-        public StoresController(IUnitOfWork _UnitOfWork, IWebService webService, IMapper mapper)
+        public StoresController(IUnitOfWork _UnitOfWork, IWebService _WebService, IMapper _Mapper, 
+            IUserValidate _UserValidate)
         {
             UnitOfWork = _UnitOfWork;
-            WebService = webService;
-            Mapper = mapper;
+            WebService = _WebService;
+            Mapper = _Mapper;
+            UserValidate = _UserValidate;
         }
 
         [HttpGet]
@@ -34,7 +39,8 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(stores);
         }
 
-        [HttpGet("{Id:int}")]
+        [HttpGet]
+        [Route("{Id:int}")]
         public async Task<IActionResult> GetById(int Id)
         {
             var store = await UnitOfWork.StoreRepository.GetByIdAsync(Id);
@@ -45,7 +51,8 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(store);
         }
 
-        [HttpGet("Lojista/{Id:int}")]
+        [HttpGet]
+        [Route("lojista/{Id:int}")]
         public async Task<IActionResult> GetByShopkeeperId(int Id)
         {
             var stores = await UnitOfWork.StoreRepository.GetByShopkeeperIdAsync(Id);
@@ -56,6 +63,7 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(stores);
         }
 
+        [Authorize(Roles = "SuperAdmin,Admin,Shopkeeper")]
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] StoreCreateDTO createDto)
         {
@@ -81,10 +89,23 @@ namespace BazarCarioca.WebAPI.Controllers
         }
 
         //Só funciona com Postman
-        [HttpPatch("{Id:int}")]
+        [Authorize(Roles = "SuperAdmin,Admin,Shopkeeper")]
+        [HttpPatch]
+        [Route("{Id:int}")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Patch(int Id, [FromForm] PatchRequestDTO requestDto)
         {
+            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var store = await UnitOfWork.StoreRepository.GetByIdAsync(Id);
+            var isOwner = await UserValidate.IsOwner(userEmail, store);
+
+            if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
+            && User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "Admin"
+            && !isOwner)
+            {
+                return Unauthorized("Você não tem autorização para alterar esta loja.");
+            }
+
             if (requestDto == null)
                 return BadRequest("Houve um erro na requisição HTTP. Informações não foram enviadas.");
 
@@ -96,10 +117,22 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(productDto);
         }
 
-        [HttpDelete("{Id:int}")]
+        [Authorize(Roles = "SuperAdmin,Admin,Shopkeeper")]
+        [HttpDelete]
+        [Route("{Id:int}")]
         public async Task<IActionResult> DeleteStore(int Id)
         {
             var store = await UnitOfWork.StoreRepository.GetByIdAsync(Id);
+
+            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var isOwner = await UserValidate.IsOwner(userEmail, store);
+
+            if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
+            && User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "Admin"
+            && !isOwner)
+            {
+                return Unauthorized();
+            }
 
             if (store == null)
                 return NotFound($"A loja não foi apagada pois não existe uma loja com Id = {Id}.");
@@ -119,6 +152,7 @@ namespace BazarCarioca.WebAPI.Controllers
         /// Método somente para desenvolvimento. NÂO implemente.
         /// </summary>
         /// <returns></returns>
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpDelete]
         public async Task<IActionResult> DeleteAll()
         {
