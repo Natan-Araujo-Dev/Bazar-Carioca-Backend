@@ -16,6 +16,20 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// cors aqui?
+var OriginWithAuthorizedAcess = "_originWithAuthorizedAcess";
+
+builder.Services.AddCors(options =>
+    options.AddPolicy(name: OriginWithAuthorizedAcess, policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    })
+);
+
+//fim do cors
+
 // Para funcionar fora do servidor local
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -146,8 +160,6 @@ builder.Services.AddAuthorization(options =>
     });
 });
 
-builder.Services.AddScoped<ITokenService, TokenService>();
-
 #endregion
 
 var app = builder.Build();
@@ -167,6 +179,17 @@ if (app.Environment.IsDevelopment())
 //app.UseHttpsRedirection();
 
 app.UseRouting();
+
+app.Use(async (context, next) =>
+{
+    var origin = context.Request.Headers["Origin"].FirstOrDefault();
+    Console.WriteLine($"Origin header: {origin ?? "<none>"}");
+    await next();
+});
+
+app.UseCors(OriginWithAuthorizedAcess);
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
