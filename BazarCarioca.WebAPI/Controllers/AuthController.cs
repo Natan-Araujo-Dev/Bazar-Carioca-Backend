@@ -115,6 +115,45 @@ namespace BazarCarioca.WebAPI.Controllers
         }
 
         [HttpPost]
+        [Route("add-user-to-shopkeeper")]
+        public async Task<IActionResult> AddUserToShopkeeper(string email)
+        {
+            var user = await UserManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                return BadRequest("Usuário não encontrado.");
+            }
+
+            var result = await UserManager.AddToRoleAsync(user, "Shopkeeper");
+
+            if (!result.Succeeded)
+            {
+                Logger.LogInformation(1, $"Falha ao adicionar usuário de email {email} à função Shopkeeper.");
+
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new Response
+                    {
+                        Status = "Erro",
+                        Message = $"Falha ao adicionar usuário de email {email} à função Shopkeeper."
+                    }
+                );
+            }
+
+            Logger.LogInformation(1, $"Usuário de email {email} adicionado à função Shopkeeper.");
+
+            return StatusCode(
+                StatusCodes.Status200OK,
+                new Response
+                {
+                    Status = "Sucesso",
+                    Message = $"Usuário de email {email} adicionado à função Shopkeeper."
+                }
+            );
+        }
+
+        [HttpPost]
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {

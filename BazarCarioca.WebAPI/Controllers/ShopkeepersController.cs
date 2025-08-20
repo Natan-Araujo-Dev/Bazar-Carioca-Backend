@@ -72,10 +72,12 @@ namespace BazarCarioca.WebAPI.Controllers
             if (requestJson == null)
                 return BadRequest("Houve um erro na requisição HTTP. Informações não foram enviadas.");
 
-            var request = JsonConvert.DeserializeObject<JsonPatchDocument<Shopkeeper>>(requestJson);
             var shopkeeper = await UnitOfWork.ShopkeeperRepository.GetByIdAsync(Id);
+
             if (shopkeeper == null)
                 return BadRequest($"Não existe um lojista com o Id = {Id} para ser alterado.");
+
+            var request = JsonConvert.DeserializeObject<JsonPatchDocument<Shopkeeper>>(requestJson);
 
             var patchedShopkeeper = await UnitOfWork.ShopkeeperRepository.UpdateAsync(shopkeeper, request);
             await UnitOfWork.CommitAsync();
@@ -96,7 +98,7 @@ namespace BazarCarioca.WebAPI.Controllers
             && User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "Admin"
             && !isOwner)
             {
-                return Unauthorized("Você não tem autorização para alterar esta loja.");
+                return Unauthorized("Você não tem autorização para apagar esse lojista.");
             }
 
             if (shopkeeper == null)
