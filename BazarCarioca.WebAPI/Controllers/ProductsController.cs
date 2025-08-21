@@ -57,6 +57,18 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(productDTO);
         }
 
+        [HttpGet]
+        [Route("tipo-de-produto/{Id:int}")]
+        public async Task<IActionResult> GetByProductTypeId(int Id)
+        {
+            var produtos = await UnitOfWork.ProductRepository.GetByProductTypeIdAsync(Id);
+
+            if (produtos.IsNullOrEmpty())
+                return NotFound("Tipo de produto inexiste ou sem produtos.");
+
+            return Ok(produtos);
+        }
+
         [Authorize(Roles = "SuperAdmin,Admin,Shopkeeper")]
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] ProductCreateDTO createDto)

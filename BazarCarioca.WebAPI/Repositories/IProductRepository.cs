@@ -8,6 +8,7 @@ namespace BazarCarioca.WebAPI.Repositories
 {
     public interface IProductRepository : IRepository<Product>, IImageRepository<Product, ProductUpdateDTO>
     {
-        
+        Task<IEnumerable<Product>> GetByProductTypeIdAsync(int Id);
+        Task<IEnumerable<Product>> GetByTermAsync(string Term);
     }
 }

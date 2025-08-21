@@ -27,5 +27,14 @@ namespace BazarCarioca.WebAPI.Repositories
 
             return stores;
         }
+
+        public async Task<IEnumerable<Store>> GetByTermAsync(string Term)
+        {
+            var stores = await DataBase.Stores
+                    .Where(x => x.Name.ToLower().Contains(Term))
+                    .ToListAsync();
+
+            return stores;
+        }
     }
 }

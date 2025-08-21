@@ -50,6 +50,18 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(service);
         }
 
+        [HttpGet]
+        [Route("loja/{Id:int}")]
+        public async Task<IActionResult> GetByStoreId(int Id)
+        {
+            var services = await UnitOfWork.ServiceRepository.GetByStoreIdAsync(Id);
+
+            if (services.IsNullOrEmpty())
+                return NotFound("Loja inexiste ou sem serviços.");
+
+            return Ok(services);
+        }
+
         [Authorize(Roles = "SuperAdmin,Admin,Shopkeeper")]
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] ServiceDTO createDto)
@@ -62,7 +74,7 @@ namespace BazarCarioca.WebAPI.Controllers
             await UnitOfWork.ServiceRepository.AddAsync(service);
             await UnitOfWork.CommitAsync();
 
-            var serviceDto = Mapper.Map<Store>(service);
+            var serviceDto = Mapper.Map<ServiceDTO>(service);
 
             return Ok(serviceDto);
         }

@@ -19,14 +19,6 @@ namespace BazarCarioca.WebAPI.Repositories
             Shopkeeper shopkeeper = await DataBase.Shopkeepers
                 .FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == Id);
 
-            #region Log
-            Console.WriteLine("===============================================");
-            Console.WriteLine("\n\n");
-            Console.WriteLine($"Shopkeeper = {shopkeeper}");
-            Console.WriteLine("\n\n");
-            Console.WriteLine("===============================================");
-            #endregion
-
             return shopkeeper;
         }
 

@@ -57,7 +57,7 @@ namespace BazarCarioca.WebAPI.Controllers
         {
             var stores = await UnitOfWork.StoreRepository.GetByShopkeeperIdAsync(Id);
 
-            if (stores == null)
+            if (stores.IsNullOrEmpty())
                 return NotFound("Lojista inexiste ou sem lojas.");
 
             return Ok(stores);

@@ -16,13 +16,13 @@ namespace BazarCarioca.WebAPI.Controllers
     [ApiController]
     public class ProductTypeController : ControllerBase
     {
-        private readonly IUnitOfWork UnityOfWork;
+        private readonly IUnitOfWork UnitOfWork;
         private readonly IMapper Mapper;
         private readonly IUserValidate UserValidate;
 
         public ProductTypeController(IUnitOfWork _UnitOfWork, IMapper mapper, IUserValidate _UserValidate)
         {
-            UnityOfWork = _UnitOfWork;
+            UnitOfWork = _UnitOfWork;
             Mapper = mapper;
             UserValidate = _UserValidate;
         }
@@ -31,7 +31,7 @@ namespace BazarCarioca.WebAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var productTypes = await UnityOfWork.ProductTypeRepository.GetAsync();
+            var productTypes = await UnitOfWork.ProductTypeRepository.GetAsync();
             if (productTypes.IsNullOrEmpty())
                 return NotFound("Nenhum tipo de produto foi encontrado.");
             return Ok(productTypes);
@@ -41,10 +41,22 @@ namespace BazarCarioca.WebAPI.Controllers
         [Route("{Id:int}")]
         public async Task<IActionResult> GetById(int Id)
         {
-            var productType = await UnityOfWork.ProductTypeRepository.GetByIdAsync(Id);
+            var productType = await UnitOfWork.ProductTypeRepository.GetByIdAsync(Id);
             if (productType == null)
                 return NotFound($"O tipo de produto com Id = {Id} não foi encontrado.");
             return Ok(productType);
+        }
+
+        [HttpGet]
+        [Route("loja/{Id:int}")]
+        public async Task<IActionResult> GetByStoreId(int Id)
+        {
+            var productTypes = await UnitOfWork.ProductTypeRepository.GetByStoreIdAsync(Id);
+
+            if (productTypes.IsNullOrEmpty())
+                return NotFound("Loja inexiste ou sem tipo de produtos.");
+
+            return Ok(productTypes);
         }
 
         [Authorize(Roles = "SuperAdmin,Admin,Shopkeeper")]
@@ -56,8 +68,8 @@ namespace BazarCarioca.WebAPI.Controllers
 
             var productType = Mapper.Map<ProductType>(createDto);
 
-            await UnityOfWork.ProductTypeRepository.AddAsync(productType);
-            await UnityOfWork.CommitAsync();
+            await UnitOfWork.ProductTypeRepository.AddAsync(productType);
+            await UnitOfWork.CommitAsync();
 
             var productTypeDto = Mapper.Map<ProductTypeDTO>(productType);
             return Ok(productTypeDto);
@@ -70,7 +82,7 @@ namespace BazarCarioca.WebAPI.Controllers
         public async Task<IActionResult> Patch(int Id, [FromForm] string requestJson)
         {
             var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-            var productType = await UnityOfWork.ProductTypeRepository.GetByIdAsync(Id);
+            var productType = await UnitOfWork.ProductTypeRepository.GetByIdAsync(Id);
             var isOwner = await UserValidate.IsOwner(userEmail, productType);
 
             if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
@@ -87,8 +99,8 @@ namespace BazarCarioca.WebAPI.Controllers
             if (productType == null)
                 return BadRequest($"Não existe um tipo de produto com o Id = {Id} para ser alterado.");
 
-            var patchedProductType = await UnityOfWork.ProductTypeRepository.UpdateAsync(productType, request);
-            await UnityOfWork.CommitAsync();
+            var patchedProductType = await UnitOfWork.ProductTypeRepository.UpdateAsync(productType, request);
+            await UnitOfWork.CommitAsync();
 
             var productTypeDto = Mapper.Map<ProductTypeDTO>(productType);
             return Ok(productTypeDto);
@@ -100,7 +112,7 @@ namespace BazarCarioca.WebAPI.Controllers
         public async Task<IActionResult> Delete(int Id)
         {
             var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-            var productType = await UnityOfWork.ProductTypeRepository.GetByIdAsync(Id);
+            var productType = await UnitOfWork.ProductTypeRepository.GetByIdAsync(Id);
             var isOwner = await UserValidate.IsOwner(userEmail, productType);
 
             if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
@@ -113,8 +125,8 @@ namespace BazarCarioca.WebAPI.Controllers
             if (productType == null)
                 return NotFound($"O tipo de produto não foi apagado pois não existe um tipo de produto com Id = {Id}.");
 
-            await UnityOfWork.ProductTypeRepository.DeleteAsync(Id);
-            await UnityOfWork.CommitAsync();
+            await UnitOfWork.ProductTypeRepository.DeleteAsync(Id);
+            await UnitOfWork.CommitAsync();
 
             return Ok($"Tipo de produto com id = {Id} foi apagado.");
         }
