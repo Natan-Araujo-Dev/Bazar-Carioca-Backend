@@ -48,10 +48,16 @@ namespace BazarCarioca.WebAPI.Controllers
         }
 
         [HttpGet]
-        [Route("loja/{Id:int}")]
-        public async Task<IActionResult> GetByStoreId(int Id)
+        [Route("loja")]
+        public async Task<IActionResult> GetByStoreId([FromQuery] int Id, bool treated)
         {
-            var productTypes = await UnitOfWork.ProductTypeRepository.GetByStoreIdAsync(Id);
+            IEnumerable<ProductType> productTypes;
+
+            if (treated)
+            {
+                productTypes = await UnitOfWork.ProductTypeRepository.GetTreatedByStoreIdAsync(Id);
+            }
+            productTypes = await UnitOfWork.ProductTypeRepository.GetByStoreIdAsync(Id);
 
             if (productTypes.IsNullOrEmpty())
                 return NotFound("Loja inexiste ou sem tipo de produtos.");

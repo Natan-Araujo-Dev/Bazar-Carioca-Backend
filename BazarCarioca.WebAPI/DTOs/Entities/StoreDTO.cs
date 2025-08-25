@@ -4,6 +4,8 @@ namespace BazarCarioca.WebAPI.DTOs.Entities
 {
     public class StoreDTO
     {
+        public int Id { get; set; }
+
         public int ShopkeeperId { get; set; }
 
         public string Name { get; set; }

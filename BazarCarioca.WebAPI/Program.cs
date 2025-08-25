@@ -22,7 +22,7 @@ var OriginWithAuthorizedAcess = "_originWithAuthorizedAcess";
 builder.Services.AddCors(options =>
     options.AddPolicy(name: OriginWithAuthorizedAcess, policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:5173", "https://bazar-carioca-frontend.vercel.app")
               .AllowAnyHeader()
               .AllowAnyMethod();
     })

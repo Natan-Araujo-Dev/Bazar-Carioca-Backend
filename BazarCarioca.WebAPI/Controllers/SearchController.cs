@@ -60,22 +60,38 @@ namespace BazarCarioca.WebAPI.Controllers
                     var lojas = await UnitOfWork.StoreRepository.GetByTermAsync(termo);
                     if (!lojas.Any())
                         return NotFound("Nenhum resultado encontrado para o termo de busca informado.");
-                    return Ok(Mapper.Map<IEnumerable<StoreDTO>>(lojas));
+                    return Ok(new SearchDTO
+                    {
+                        Stores = Mapper.Map<IEnumerable<StoreDTO>>(lojas)
+                    });
+
                 case "servicos":
                     var servicos = await UnitOfWork.ServiceRepository.GetByTermAsync(termo);
                     if (!servicos.Any())
                         return NotFound("Nenhum resultado encontrado para o termo de busca informado.");
-                    return Ok(Mapper.Map<IEnumerable<ServiceDTO>>(servicos));
+                    return Ok(new SearchDTO
+                    {
+                        Services = Mapper.Map<IEnumerable<ServiceDTO>>(servicos)
+                    });
+
                 case "tipos-de-produtos":
                     var tiposDeProdutos = await UnitOfWork.ProductTypeRepository.GetByTermAsync(termo);
                     if (!tiposDeProdutos.Any())
                         return NotFound("Nenhum resultado encontrado para o termo de busca informado.");
-                    return Ok(Mapper.Map<IEnumerable<ProductTypeDTO>>(tiposDeProdutos));
+                    return Ok(new SearchDTO
+                    {
+                        ProductTypes = Mapper.Map<IEnumerable<ProductTypeDTO>>(tiposDeProdutos)
+                    });
+
                 case "produtos":
                     var produtos = await UnitOfWork.ProductRepository.GetByTermAsync(termo);
                     if (!produtos.Any())
                         return NotFound("Nenhum resultado encontrado para o termo de busca informado.");
-                    return Ok(Mapper.Map<IEnumerable<ProductDTO>>(produtos));
+                    return Ok(new SearchDTO
+                    {
+                        Products = Mapper.Map<IEnumerable<ProductDTO>>(produtos)
+                    });
+
                 default:
                     return BadRequest("Entidade inválida. As entidades válidas são: todas, lojas, servicos, tipos-de-produtos, produtos.");
             }

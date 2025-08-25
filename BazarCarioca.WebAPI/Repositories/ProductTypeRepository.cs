@@ -22,6 +22,25 @@ namespace BazarCarioca.WebAPI.Repositories
             return productTypes;
         }
 
+        public async Task<IEnumerable<ProductType>> GetTreatedByStoreIdAsync(int Id)
+        {
+            var productTypes = await DataBase.ProductTypes
+                 .Where(s => s.StoreId == Id)
+                 .ToListAsync();
+
+            foreach (var productType in productTypes)
+            {
+                productType.Products = await DataBase.Products
+                    .Where(p => p.ProductTypeId == productType.Id)
+                    .ToListAsync();
+            }
+
+            if (productTypes is null)
+                throw new ArgumentException(nameof(ProductType));
+
+            return productTypes;
+        }
+
         public async Task<IEnumerable<ProductType>> GetByTermAsync(string Term)
         {
             var productTypes = await DataBase.ProductTypes
