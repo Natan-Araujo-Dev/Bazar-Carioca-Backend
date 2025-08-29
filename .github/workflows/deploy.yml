@@ -22,7 +22,7 @@ jobs:
 
       # 3. Publicar a API
       - name: Publish API
-        run: dotnet publish ./Backend/Bazar_Carioca/BazarCarioca.WebAPI/BazarCarioca.WebAPI.csproj -c Release -o ./publish
+        run: dotnet publish BazarCarioca.WebAPI/BazarCarioca.WebAPI.csproj -c Release -o ./publish
 
       # 4. Configurar chave SSH
       - name: Setup SSH
@@ -30,17 +30,20 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      # 5. Copiar arquivos para EC2
-      - name: Upload to EC2
-        run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "sudo systemctl stop bazar-api.service && sudo rm -rf /home/ubuntu/app/*"
-          scp -o StrictHostKeyChecking=no -r ./publish/* ubuntu@15.228.192.242:/home/ubuntu/app/
+      # 5. Parar serviço e apagar arquivos antigos
+      - name: Stop service and clean old files
+        run: ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "\
+              sudo systemctl stop bazar-api.service && \
+              sudo rm -rf /home/ubuntu/app/*"
 
-      # 6. Reiniciar serviço
+      # 6. Enviar novos arquivos
+      - name: Upload new files
+        run: scp -o StrictHostKeyChecking=no -r ./publish/* ubuntu@15.228.192.242:/home/ubuntu/app/
+
+      # 7. Reiniciar serviço
       - name: Restart API service
-        run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "\
-            sudo systemctl daemon-reload && \
-            sudo systemctl enable bazar-api.service && \
-            sudo systemctl start bazar-api.service && \
-            sudo systemctl status bazar-api.service -l"
+        run: ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "\
+              sudo systemctl daemon-reload && \
+              sudo systemctl enable bazar-api.service && \
+              sudo systemctl start bazar-api.service && \
+              sudo systemctl status bazar-api.service -l"
