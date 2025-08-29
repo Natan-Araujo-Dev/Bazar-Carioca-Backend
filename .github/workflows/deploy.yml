@@ -1,0 +1,46 @@
+name: Deploy ASP.NET Core API to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Baixar o código
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Instalar .NET
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      # 3. Publicar a API
+      - name: Publish API
+        run: dotnet publish ./Backend/Bazar_Carioca/BazarCarioca.WebAPI/BazarCarioca.WebAPI.csproj -c Release -o ./publish
+
+      # 4. Configurar chave SSH
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      # 5. Copiar arquivos para EC2
+      - name: Upload to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "sudo systemctl stop bazar-api.service && sudo rm -rf /home/ubuntu/app/*"
+          scp -o StrictHostKeyChecking=no -r ./publish/* ubuntu@15.228.192.242:/home/ubuntu/app/
+
+      # 6. Reiniciar serviço
+      - name: Restart API service
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "\
+            sudo systemctl daemon-reload && \
+            sudo systemctl enable bazar-api.service && \
+            sudo systemctl start bazar-api.service && \
+            sudo systemctl status bazar-api.service -l"
