@@ -24,7 +24,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:5173", "https://bazar-carioca-frontend.vercel.app")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     })
 );
 
@@ -72,10 +73,6 @@ builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IProductTypeRepository, ProductTypeRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-// Para o SQLController
-builder.Services.AddScoped<ProductsController>();
-builder.Services.AddScoped<StoresController>();
 
 // Para a autênticação JWT
 builder.Services.AddScoped<ITokenService, TokenService>();

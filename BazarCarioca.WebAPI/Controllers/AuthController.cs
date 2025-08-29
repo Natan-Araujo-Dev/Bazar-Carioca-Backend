@@ -4,6 +4,7 @@ using BazarCarioca.WebAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Claim = System.Security.Claims.Claim;
@@ -41,7 +42,7 @@ namespace BazarCarioca.WebAPI.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     new Response
-                    { 
+                    {
                         Status = "Erro",
                         Message = "Função já existe."
                     }
@@ -54,8 +55,8 @@ namespace BazarCarioca.WebAPI.Controllers
             {
                 return StatusCode(
                     StatusCodes.Status500InternalServerError,
-                    new Response 
-                    { 
+                    new Response
+                    {
                         Status = "Erro",
                         Message = "Falha ao criar função."
                     }
@@ -66,10 +67,58 @@ namespace BazarCarioca.WebAPI.Controllers
 
             return StatusCode(
                 statusCode: StatusCodes.Status200OK,
-                new Response 
-                { 
+                new Response
+                {
                     Status = "Sucesso",
                     Message = $"Função {roleName} criada com sucesso."
+                }
+            );
+        }
+
+        [HttpPost]
+        [Route("registrar")]
+        public async Task<IActionResult> Register([FromBody] RegisterModel model)
+        {
+            var emailExists = await UserManager.FindByEmailAsync(model.Email!);
+
+            if (emailExists != null)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new Response
+                    {
+                        Status = "Erro",
+                        Message = $"O email {model.Email} já está em uso."
+                    }
+                );
+            }
+
+            ApplicationUser user = new()
+            {
+                Email = model.Email,
+                SecurityStamp = Guid.NewGuid().ToString(),
+                UserName = model.UserName
+            };
+
+            var result = await UserManager.CreateAsync(user, model.Password!);
+
+            if (!result.Succeeded)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new Response
+                    {
+                        Status = "Erro",
+                        Message = "Falha na criação de usuário."
+                    }
+                );
+            }
+
+            return Ok(
+                new Response
+                {
+                    Status = "Sucesso",
+                    Message = "Usuário criado com suceso."
                 }
             );
         }
@@ -94,10 +143,10 @@ namespace BazarCarioca.WebAPI.Controllers
 
                 return StatusCode(
                     StatusCodes.Status500InternalServerError,
-                    new Response 
+                    new Response
                     {
                         Status = "Erro",
-                        Message = $"Falha ao adicionar usuário de email {email} à função {roleName}." 
+                        Message = $"Falha ao adicionar usuário de email {email} à função {roleName}."
                     }
                 );
             }
@@ -203,53 +252,6 @@ namespace BazarCarioca.WebAPI.Controllers
         }
 
         [HttpPost]
-        [Route("registrar")]
-        public async Task<IActionResult> Register([FromBody] RegisterModel model)
-        {
-            var emailExists = await UserManager.FindByEmailAsync(model.Email!);
-
-            if (emailExists != null)
-            {
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    new Response { 
-                        Status = "Erro", 
-                        Message = $"O email {model.Email} já está em uso." 
-                    }
-                );
-            }
-
-            ApplicationUser user = new()
-            {
-                Email = model.Email,
-                SecurityStamp = Guid.NewGuid().ToString(),
-                UserName = model.UserName
-            };
-
-            var result = await UserManager.CreateAsync(user, model.Password!);
-
-            if (!result.Succeeded)
-            {
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    new Response 
-                    { 
-                        Status = "Erro", 
-                        Message = "Falha na criação de usuário." 
-                    }
-                );
-            }
-
-            return Ok(
-                new Response 
-                { 
-                    Status = "Sucesso", 
-                    Message = "Usuário criado com suceso."
-                }
-            );
-        }
-
-        [HttpPost]
         [Route("refresh-token")]
         public async Task<IActionResult> RefreshToken(TokenModel tokenModel)
         {
@@ -286,12 +288,13 @@ namespace BazarCarioca.WebAPI.Controllers
             var newRefreshToken = TokenService.GenerateRefreshToken();
 
             user.RefreshToken = newRefreshToken;
-            await UserManager.UpdateAsync(user); 
+            await UserManager.UpdateAsync(user);
 
             return new ObjectResult(new
             {
                 AccessToken = new JwtSecurityTokenHandler().WriteToken(newAcessToken),
                 RefreshToken = newRefreshToken,
+                Expiration = newAcessToken.ValidTo
             });
         }
 

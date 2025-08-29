@@ -147,39 +147,5 @@ namespace BazarCarioca.WebAPI.Controllers
 
             return Ok($"A loja com id = {Id} foi apagada.");
         }
-
-        /// <summary>
-        /// Método somente para desenvolvimento. NÂO implemente.
-        /// </summary>
-        /// <returns></returns>
-        [Authorize(Roles = "SuperAdmin,Admin")]
-        [HttpDelete]
-        public async Task<IActionResult> DeleteAll()
-        {
-            var stores = await UnitOfWork.StoreRepository.GetAsync();
-
-            if (stores.IsNullOrEmpty())
-                return NotFound("Nenhuma loja foi apagada pois não existem lojas cadastradas.");
-
-            var ids = new List<int>();
-            var imageUrls = new List<string>();
-
-            foreach (var store in stores)
-            {
-                ids.Add(store.Id);
-                imageUrls.Add(store.ImageUrl);
-            }
-
-            for (int i = 0; i < ids.Count; i++)
-            {
-                if (imageUrls[i] != null)
-                    await WebService.DeleteFileAsync(imageUrls[i]);
-
-                await UnitOfWork.StoreRepository.DeleteAsync(ids[i]);
-                await UnitOfWork.CommitAsync();
-            }
-
-            return Ok("Todos lojas e suas imagens foram apagadas.");
-        }
     }
 }

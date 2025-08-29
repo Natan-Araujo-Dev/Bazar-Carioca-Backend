@@ -5,6 +5,7 @@ using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
 using BazarCarioca.WebAPI.Validation;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -54,6 +55,10 @@ namespace BazarCarioca.WebAPI.Controllers
         {
             if (createDto == null)
                 return BadRequest("Nenhuma informação foi passada na requisição.");
+
+            var emailExists = await UnitOfWork.ShopkeeperRepository.EmailInUse(createDto.Email!);
+            if (emailExists)
+                return BadRequest($"O email '{createDto.Email}' já está em uso.");
 
             var shopkeeper = Mapper.Map<Shopkeeper>(createDto);
             await UnitOfWork.ShopkeeperRepository.AddAsync(shopkeeper);

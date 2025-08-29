@@ -152,39 +152,5 @@ namespace BazarCarioca.WebAPI.Controllers
 
             return Ok($"O produto com id = {Id} apagado.");
         }
-
-        /// <summary>
-        /// Método somente para desenvolvimento. NÂO implemente.
-        /// </summary>
-        /// <returns></returns>
-        [Authorize(Roles = "SuperAdmin,Admin,Shopkeeper")]
-        [HttpDelete]
-        public async Task<IActionResult> DeleteAll()
-        {
-            var products = await UnitOfWork.ProductRepository.GetAsync();
-
-            if (products.IsNullOrEmpty())
-                return NotFound("Nenhum produto foi apagado pois não existem produtos cadastrados.");
-
-            var ids = new List<int>();
-            var imageUrls = new List<string>();
-
-            foreach (var product in products)
-            {
-                ids.Add(product.Id);
-                imageUrls.Add(product.ImageUrl);
-            }
-
-            for (int i = 0; i < ids.Count; i++)
-            {
-                if (imageUrls[i] != null)
-                    await WebService.DeleteFileAsync(imageUrls[i]);
-
-                await UnitOfWork.ProductRepository.DeleteAsync(ids[i]);
-                await UnitOfWork.CommitAsync();
-            }
-
-            return Ok("Todos produtos e suas imagens foram apagadas.");
-        }
     }
 }
