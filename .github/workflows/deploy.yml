@@ -2,36 +2,71 @@ name: Deploy ASP.NET Core API to AWS EC2
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      # 1. Baixar o código
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup .NET 8
+      # 2. Instalar .NET
+      - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
 
-      - name: Publish API for Linux
+      # 3. Publicar a API
+      - name: Publish API
         run: dotnet publish BazarCarioca.WebAPI/BazarCarioca.WebAPI.csproj -c Release -o ./publish -r linux-x64 --self-contained false /p:PublishSingleFile=false /p:PublishTrimmed=false
 
-      - name: Setup SSH agent
+      # 4. Configurar chave SSH
+      - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      - name: Stop service and prepare remote folder
-        run: ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "sudo systemctl stop bazar-api.service || true && sudo rm -rf /home/ubuntu/app/publish && sudo mkdir -p /home/ubuntu/app/publish"
+      # 5. Parar serviço
+      - name: Stop service
+        run: ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "sudo systemctl stop bazar-api.service"
 
-      - name: Upload publish folder
-        run: scp -o StrictHostKeyChecking=no -r ./publish ubuntu@15.228.192.242:/home/ubuntu/app/
+      # 6. Apagar arquivos antigos
+      - name: Clean old files
+        run: ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "sudo rm -rf /home/ubuntu/app/*"
 
-      - name: Restart service
+      # 7. Enviar novos arquivos
+      - name: Upload new files
+        run: scp -o StrictHostKeyChecking=no -r ./publish/* ubuntu@15.228.192.242:/home/ubuntu/app/
+
+      # 8. Criar/atualizar o bazar-api.service
+      - name: Create/update systemd service
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "sudo tee /etc/systemd/system/bazar-api.service > /dev/null << 'EOF'
+          [Unit]
+          Description=Bazar Carioca API
+          After=network.target
+          
+          [Service]
+          WorkingDirectory=/home/ubuntu/app/publish
+          ExecStart=/usr/bin/dotnet /home/ubuntu/app/publish/BazarCarioca.WebAPI.dll
+          Restart=always
+          RestartSec=10
+          KillSignal=SIGINT
+          SyslogIdentifier=bazar-api
+          User=ubuntu
+          Environment=ASPNETCORE_ENVIRONMENT=Production
+          Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+          
+          [Install]
+          WantedBy=multi-user.target
+          EOF"
+
+      # 9. Reiniciar serviço
+      - name: Restart API service
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "
             sudo systemctl daemon-reload
@@ -39,7 +74,3 @@ jobs:
             sudo systemctl start bazar-api.service
             sudo systemctl status bazar-api.service -l
           "
-
-      - name: Show last service logs (if failed)
-        if: failure()
-        run: ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "sudo journalctl -u bazar-api.service -n 200 --no-pager"
