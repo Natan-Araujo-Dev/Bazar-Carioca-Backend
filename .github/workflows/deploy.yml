@@ -47,6 +47,13 @@ jobs:
       - name: Upload new files
         run: scp -o StrictHostKeyChecking=no -r ./publish/* ubuntu@15.228.192.242:/home/ubuntu/app/publish/
 
+      # 7.1. Criar appsettings.json com o secret (no mesmo estilo do service)
+      - name: Create appsettings.json on server
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "sudo tee /home/ubuntu/app/publish/appsettings.json > /dev/null << 'EOF'
+          ${{ secrets.APPSETTINGS }}
+          EOF"
+
       # 8. Criar/atualizar o bazar-api.service
       - name: Create/update systemd service
         run: |
