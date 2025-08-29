@@ -2,48 +2,36 @@ name: Deploy ASP.NET Core API to AWS EC2
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Baixar o código
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v3
 
-      # 2. Instalar .NET
-      - name: Setup .NET
+      - name: Setup .NET 8
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
 
-      # 3. Publicar a API
-      - name: Publish API
+      - name: Publish API for Linux
         run: dotnet publish BazarCarioca.WebAPI/BazarCarioca.WebAPI.csproj -c Release -o ./publish -r linux-x64 --self-contained false /p:PublishSingleFile=false /p:PublishTrimmed=false
 
-      # 4. Configurar chave SSH
-      - name: Setup SSH
+      - name: Setup SSH agent
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      # 5. Parar serviço
-      - name: Stop service
-        run: ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "sudo systemctl stop bazar-api.service"
+      - name: Stop service and prepare remote folder
+        run: ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "sudo systemctl stop bazar-api.service || true && sudo rm -rf /home/ubuntu/app/publish && sudo mkdir -p /home/ubuntu/app/publish"
 
-      # 6. Apagar arquivos antigos
-      - name: Clean old files
-        run: ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "sudo rm -rf /home/ubuntu/app/*"
+      - name: Upload publish folder
+        run: scp -o StrictHostKeyChecking=no -r ./publish ubuntu@15.228.192.242:/home/ubuntu/app/
 
-      # 7. Enviar novos arquivos
-      - name: Upload new files
-        run: scp -o StrictHostKeyChecking=no -r ./publish/* ubuntu@15.228.192.242:/home/ubuntu/app/
-
-      # 8. Reiniciar serviço
-      - name: Restart API service
+      - name: Restart service
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "
             sudo systemctl daemon-reload
@@ -52,3 +40,6 @@ jobs:
             sudo systemctl status bazar-api.service -l
           "
 
+      - name: Show last service logs (if failed)
+        if: failure()
+        run: ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "sudo journalctl -u bazar-api.service -n 200 --no-pager"
