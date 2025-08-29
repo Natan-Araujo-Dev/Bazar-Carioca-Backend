@@ -44,8 +44,11 @@ jobs:
 
       # 8. Reiniciar serviço
       - name: Restart API service
-        run: ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "\
-              sudo systemctl daemon-reload && \
-              sudo systemctl enable bazar-api.service && \
-              sudo systemctl start bazar-api.service && \
-              sudo systemctl status bazar-api.service -l"
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "
+            sudo systemctl daemon-reload
+            sudo systemctl enable bazar-api.service
+            sudo systemctl start bazar-api.service
+            sudo systemctl status bazar-api.service -l
+          "
+
