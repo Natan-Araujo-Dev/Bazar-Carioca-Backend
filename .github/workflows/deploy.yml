@@ -52,6 +52,12 @@ jobs:
         run: |
           echo "${{ secrets.APPSETTINGS }}" | ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "cat > /home/ubuntu/app/publish/appsettings.json"
 
+      # 8.1. Criar appsettings.Development.json com o secret 
+      - name: Create Appsettings.json
+        run: |
+          echo "${{ secrets.APPSETTINGSDEVELOPMENT }}" | ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "cat > /home/ubuntu/app/publish/appsettings.Development.json"
+
+
       # 9. Criar/atualizar o bazar-api.service
       - name: Create/update systemd service
         run: |
