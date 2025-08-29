@@ -34,15 +34,15 @@ jobs:
       - name: Stop service
         run: ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "sudo systemctl stop bazar-api.service"
 
-      # 6. Apagar arquivos antigos (mantém /home/ubuntu/app, cria publish)
-      - name: Clean old files and ensure publish dir
+      # 6. Apagar arquivos antigos
+      - name: Clean old files 
         run: ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "
           sudo rm -rf /home/ubuntu/app/*
           sudo mkdir -p /home/ubuntu/app/publish
           sudo chown -R ubuntu:ubuntu /home/ubuntu/app
-        "
+          "
 
-      # 7. Enviar novos arquivos para /home/ubuntu/app/publish
+      # 7. Enviar novos arquivos
       - name: Upload new files
         run: scp -o StrictHostKeyChecking=no -r ./publish/* ubuntu@15.228.192.242:/home/ubuntu/app/publish/
 
