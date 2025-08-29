@@ -22,7 +22,7 @@ jobs:
 
       # 3. Publicar a API
       - name: Publish API
-        run: dotnet publish BazarCarioca.WebAPI/BazarCarioca.WebAPI.csproj -c Release -o ./publish
+        run: dotnet publish BazarCarioca.WebAPI/BazarCarioca.WebAPI.csproj -c Release -o ./publish -r linux-x64 --self-contained false /p:PublishSingleFile=false /p:PublishTrimmed=false
 
       # 4. Configurar chave SSH
       - name: Setup SSH
