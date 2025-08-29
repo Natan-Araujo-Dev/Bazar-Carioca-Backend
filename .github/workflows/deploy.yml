@@ -47,14 +47,12 @@ jobs:
       - name: Upload new files
         run: scp -o StrictHostKeyChecking=no -r ./publish/* ubuntu@15.228.192.242:/home/ubuntu/app/publish/
 
-      # 7.1. Criar appsettings.json com o secret (no mesmo estilo do service)
-      - name: Create appsettings.json on server
+      # 8. Criar appsettings.json com o secret (no mesmo estilo do service)
+      - name: Create Appsettings.json
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "sudo tee /home/ubuntu/app/publish/appsettings.json > /dev/null << 'EOF'
-          ${{ secrets.APPSETTINGS }}
-          EOF"
+          echo "${{ secrets.APPSETTINGS }}" > /home/ubuntu/app/publish/appsettings.json
 
-      # 8. Criar/atualizar o bazar-api.service
+      # 9. Criar/atualizar o bazar-api.service
       - name: Create/update systemd service
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "sudo tee /etc/systemd/system/bazar-api.service > /dev/null << 'EOF'
@@ -77,7 +75,7 @@ jobs:
           WantedBy=multi-user.target
           EOF"
 
-      # 9. Reiniciar serviço
+      # 10. Reiniciar serviço
       - name: Restart API service
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "
