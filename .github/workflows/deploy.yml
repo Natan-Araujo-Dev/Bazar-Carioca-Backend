@@ -30,17 +30,19 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      # 5. Parar serviço e apagar arquivos antigos
-      - name: Stop service and clean old files
-        run: ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "\
-              sudo systemctl stop bazar-api.service && \
-              sudo rm -rf /home/ubuntu/app/*"
+      # 5. Parar serviço
+      - name: Stop service
+        run: ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "sudo systemctl stop bazar-api.service"
 
-      # 6. Enviar novos arquivos
+      # 6. Apagar arquivos antigos
+      - name: Clean old files
+        run: ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "sudo rm -rf /home/ubuntu/app/*"
+
+      # 7. Enviar novos arquivos
       - name: Upload new files
         run: scp -o StrictHostKeyChecking=no -r ./publish/* ubuntu@15.228.192.242:/home/ubuntu/app/
 
-      # 7. Reiniciar serviço
+      # 8. Reiniciar serviço
       - name: Restart API service
         run: ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "\
               sudo systemctl daemon-reload && \
