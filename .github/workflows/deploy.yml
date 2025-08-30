@@ -47,16 +47,23 @@ jobs:
       - name: Upload new files
         run: scp -o StrictHostKeyChecking=no -r ./publish/* ubuntu@15.228.192.242:/home/ubuntu/app/publish/
 
-      # 8. Criar appsettings.json com o secret
-      - name: Create Appsettings.json
-        run: |
-          echo "${{ secrets.APPSETTINGS }}" | ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "cat > /home/ubuntu/app/publish/appsettings.json"
+      # 8. Criar appsettings.json localmente e enviar
+      - name: Create local appsettings.json
+        run: echo '${{ secrets.APPSETTINGS }}' > appsettings.json
 
-      # 8.1. Criar appsettings.Development.json com o secret 
-      - name: Create Appsettings.json
-        run: |
-          echo "${{ secrets.APPSETTINGSDEVELOPMENT }}" | ssh -o StrictHostKeyChecking=no ubuntu@15.228.192.242 "cat > /home/ubuntu/app/publish/appsettings.Development.json"
+      - name: Upload appsettings.json
+        run: scp -o StrictHostKeyChecking=no appsettings.json ubuntu@15.228.192.242:/home/ubuntu/app/publish/
 
+      # 8.1 Criar appsettings.Development.json localmente e enviar
+      - name: Create local appsettings.Development.json
+        run: echo '${{ secrets.APPSETTINGSDEVELOPMENT }}' > appsettings.Development.json
+
+      - name: Upload appsettings.Development.json
+        run: scp -o StrictHostKeyChecking=no appsettings.Development.json ubuntu@15.228.192.242:/home/ubuntu/app/publish/
+
+      # 8.2 Limpar arquivos locais temporários
+      - name: Cleanup local json files
+        run: rm appsettings.json appsettings.Development.json
 
       # 9. Criar/atualizar o bazar-api.service
       - name: Create/update systemd service
