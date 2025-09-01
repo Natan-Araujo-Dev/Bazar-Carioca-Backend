@@ -245,9 +245,9 @@ namespace BazarCarioca.WebAPI.Controllers
 
             return Ok(new
             {
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
-                RefreshToken = refreshToken,
-                Expiration = token.ValidTo
+                accessToken = new JwtSecurityTokenHandler().WriteToken(token),
+                refreshToken = refreshToken,
+                expiration = token.ValidTo
             });
         }
 
@@ -259,7 +259,7 @@ namespace BazarCarioca.WebAPI.Controllers
             {
                 return BadRequest("Requisição do cliente inválida.");
             }
-            string? acessToken = tokenModel.AcessToken
+            string? acessToken = tokenModel.AccessToken
                                 ?? throw new ArgumentNullException(nameof(tokenModel));
 
             string? refreshToken = tokenModel.RefreshToken
@@ -292,9 +292,9 @@ namespace BazarCarioca.WebAPI.Controllers
 
             return new ObjectResult(new
             {
-                AccessToken = new JwtSecurityTokenHandler().WriteToken(newAcessToken),
-                RefreshToken = newRefreshToken,
-                Expiration = newAcessToken.ValidTo
+                accessToken = new JwtSecurityTokenHandler().WriteToken(newAcessToken),
+                refreshToken = newRefreshToken,
+                expiration = newAcessToken.ValidTo
             });
         }
 
