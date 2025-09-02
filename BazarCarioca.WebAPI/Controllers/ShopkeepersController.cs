@@ -13,7 +13,6 @@ namespace BazarCarioca.WebAPI.Controllers
 {
     [Route("bazar-carioca/lojistas")]
     [ApiController]
-    //[Authorize]
     public class ShopkeepersController : ControllerBase
     {
         private readonly IUnitOfWork UnitOfWork;
@@ -38,12 +37,23 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(shopkeepers);
         }
 
-        [Authorize(Roles = "SuperAdmin,Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin,Shopkeeper")]
         [HttpGet]
         [Route("{Id:int}")]
         public async Task<IActionResult> GetById(int Id)
         {
             var shopkeeper = await UnitOfWork.ShopkeeperRepository.GetByIdAsync(Id);
+
+            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var isOwner = await UserValidate.IsOwner(userEmail, shopkeeper);
+
+            if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
+            && User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "Admin"
+            && !isOwner)
+            {
+                return Unauthorized("Você não tem autorização para ver as informações desse lojista.");
+            }
+
             if (shopkeeper == null)
                 return NotFound($"O lojista com Id = {Id} não foi encontrado.");
             return Ok(shopkeeper);
@@ -103,6 +113,16 @@ namespace BazarCarioca.WebAPI.Controllers
                 return BadRequest("Houve um erro na requisição HTTP. Informações não foram enviadas.");
 
             var shopkeeper = await UnitOfWork.ShopkeeperRepository.GetByIdAsync(Id);
+
+            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var isOwner = await UserValidate.IsOwner(userEmail, shopkeeper);
+
+            if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
+            && User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "Admin"
+            && !isOwner)
+            {
+                return Unauthorized("Você não tem autorização para editar as informações desse lojista.");
+            }
 
             if (shopkeeper == null)
                 return BadRequest($"Não existe um lojista com o Id = {Id} para ser alterado.");
