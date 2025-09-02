@@ -54,10 +54,6 @@ jobs:
       - name: Upload appsettings.json
         run: scp -o StrictHostKeyChecking=no appsettings.json ubuntu@15.228.192.242:/home/ubuntu/app/publish/
 
-      # 8.1 Limpar arquivos locais temporários
-      - name: Cleanup local json files
-        run: rm appsettings.json appsettings.Development.json
-
       # 9. Criar/atualizar o bazar-api.service
       - name: Create/update systemd service
         run: |
