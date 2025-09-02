@@ -5,7 +5,6 @@ using BazarCarioca.WebAPI.Models;
 using BazarCarioca.WebAPI.Repositories;
 using BazarCarioca.WebAPI.Validation;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -50,8 +49,34 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(shopkeeper);
         }
 
+        [HttpGet]
+        [Authorize(Roles = "SuperAdmin,Admin,Shopkeeper")]
+        [Route("email")]
+        public async Task<IActionResult> GetByEmail([FromQuery] string Email)
+        {
+
+            var shopkeeper = await UnitOfWork.ShopkeeperRepository.GetByEmail(Email);
+
+            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var isOwner = await UserValidate.IsOwner(userEmail, shopkeeper);
+
+            if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
+            && User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "Admin"
+            && !isOwner)
+            {
+                return Unauthorized("Esse não é o seu email.");
+            }
+
+            if (shopkeeper == null)
+                return NotFound($"O lojista com email = {Email} não foi encontrado.");
+
+
+            var shopkeeperDto = Mapper.Map<ShopkeeperDTO>(shopkeeper);
+            return Ok(shopkeeperDto);
+        }
+
         [HttpPost]
-        public async Task<IActionResult> Create([FromForm] ShopkeeperDTO createDto)
+        public async Task<IActionResult> Create([FromForm] ShopkeeperCreateDTO createDto)
         {
             if (createDto == null)
                 return BadRequest("Nenhuma informação foi passada na requisição.");
@@ -68,7 +93,7 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(shopkeeperDto);
         }
 
-        [Authorize(Roles = "SuperAdmin,Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin,Shopkeeper")]
         [HttpPatch]
         [Route("{Id:int}")]
         [Consumes("multipart/form-data")]

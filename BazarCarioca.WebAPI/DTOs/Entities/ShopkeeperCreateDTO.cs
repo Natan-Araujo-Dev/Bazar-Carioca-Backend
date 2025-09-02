@@ -2,13 +2,13 @@
 
 namespace BazarCarioca.WebAPI.DTOs.Entities
 {
-    public class ShopkeeperDTO
+    public class ShopkeeperCreateDTO
     {
-        public int Id { get; set; }
-
         public string Name { get; set; }
 
         [EmailAddress]
         public string Email { get; set; }
+
+        public string Password { get; set; }
     }
 }

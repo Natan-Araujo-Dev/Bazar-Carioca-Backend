@@ -10,6 +10,9 @@ namespace BazarCarioca.WebAPI.DTOs.Mapper
         {
             CreateMap<Shopkeeper, ShopkeeperDTO>()
                 .ReverseMap();
+
+            CreateMap<Shopkeeper, ShopkeeperCreateDTO>()
+                .ReverseMap();
         }
     }
 }

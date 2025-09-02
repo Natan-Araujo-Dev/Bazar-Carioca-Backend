@@ -10,6 +10,7 @@ namespace BazarCarioca.WebAPI.Repositories
         Task<Shopkeeper> GetByServiceIdAsync(int Id);
         Task<Shopkeeper> GetByProductTypeIdAsync(int Id);
         Task<Shopkeeper> GetByProductIdAsync(int Id);
+        Task<Shopkeeper> GetByEmail(string email);
         Task<bool> EmailInUse(string email);
     }
 }

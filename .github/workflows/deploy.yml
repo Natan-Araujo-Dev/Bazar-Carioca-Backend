@@ -54,14 +54,7 @@ jobs:
       - name: Upload appsettings.json
         run: scp -o StrictHostKeyChecking=no appsettings.json ubuntu@15.228.192.242:/home/ubuntu/app/publish/
 
-      # 8.1 Criar appsettings.Development.json localmente e enviar
-      - name: Create local appsettings.Development.json
-        run: echo '${{ secrets.APPSETTINGSDEVELOPMENT }}' > appsettings.Development.json
-
-      - name: Upload appsettings.Development.json
-        run: scp -o StrictHostKeyChecking=no appsettings.Development.json ubuntu@15.228.192.242:/home/ubuntu/app/publish/
-
-      # 8.2 Limpar arquivos locais temporários
+      # 8.1 Limpar arquivos locais temporários
       - name: Cleanup local json files
         run: rm appsettings.json appsettings.Development.json
 

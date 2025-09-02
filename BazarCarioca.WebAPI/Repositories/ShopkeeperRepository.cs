@@ -67,6 +67,21 @@ namespace BazarCarioca.WebAPI.Repositories
             return shopkeeper;
         }
 
+        public async Task<Shopkeeper> GetByEmail(string email)
+        {
+            var shopkeeper = await DataBase.Shopkeepers
+                .FirstOrDefaultAsync(e => EF.Property<string>(e, "Email") == email);
+
+
+
+            if (shopkeeper == null)
+            {
+                return null;
+            }
+
+            return shopkeeper;
+        }
+
         public async Task<bool> EmailInUse(string email)
         {
             var shopkeeper = await DataBase.Shopkeepers
@@ -79,10 +94,6 @@ namespace BazarCarioca.WebAPI.Repositories
                return false;
             }
 
-            Console.WriteLine("==================");
-            Console.WriteLine("Nome: " + shopkeeper.Name);
-            Console.WriteLine("Email: " + shopkeeper.Email);
-            Console.WriteLine("==================");
             return true;
         }
     }
