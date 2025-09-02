@@ -51,11 +51,23 @@ namespace BazarCarioca.WebAPI.Controllers
             return Ok(store);
         }
 
+        [Authorize(Roles = "SuperAdmin,Admin,Shopkeeper")]
         [HttpGet]
         [Route("lojista/{Id:int}")]
         public async Task<IActionResult> GetByShopkeeperId(int Id)
         {
             var stores = await UnitOfWork.StoreRepository.GetByShopkeeperIdAsync(Id);
+
+            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var store = stores.FirstOrDefault();
+            var isOwner = await UserValidate.IsOwner(userEmail, store);
+
+            if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
+            && User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "Admin"
+            && !isOwner)
+            {
+                return Unauthorized("Você não tem autorização para ver as lojas desse lojista.");
+            }
 
             if (stores.IsNullOrEmpty())
                 return NotFound("Lojista inexiste ou sem lojas.");
