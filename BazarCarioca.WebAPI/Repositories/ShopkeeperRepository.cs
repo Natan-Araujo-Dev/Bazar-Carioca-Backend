@@ -16,8 +16,11 @@ namespace BazarCarioca.WebAPI.Repositories
 
         public async Task<Shopkeeper> GetByStoreIdAsync(int Id)
         {
-            Shopkeeper shopkeeper = await DataBase.Shopkeepers
-                .FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == Id);
+            Store? store = await DataBase.Stores
+                 .FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == Id);
+
+            Shopkeeper? shopkeeper = await DataBase.Shopkeepers
+                .FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == store.ShopkeeperId);
 
             return shopkeeper;
         }

@@ -60,6 +60,7 @@ namespace BazarCarioca.WebAPI.Controllers
 
             var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
             var store = stores.FirstOrDefault();
+
             var isOwner = await UserValidate.IsOwner(userEmail, store);
 
             if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"

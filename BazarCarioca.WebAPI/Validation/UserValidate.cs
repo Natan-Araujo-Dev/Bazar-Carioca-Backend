@@ -14,7 +14,7 @@ namespace BazarCarioca.WebAPI.Validation
         }
 
 
-
+        // objetivo: pegar o lojista.
         public async Task<bool> IsOwner(string userEmail, IEntity entity)
         {
             if (userEmail == null
@@ -23,7 +23,6 @@ namespace BazarCarioca.WebAPI.Validation
                 return false;
             }
             string entityName = entity.GetType().Name;
-            Console.WriteLine("=========================\n\n" + entityName);
 
             Shopkeeper shopkeeper;
 
