@@ -85,6 +85,17 @@ namespace BazarCarioca.WebAPI.Controllers
 
             var store = Mapper.Map<Store>(createDto);
 
+            var shopkeeper = UnitOfWork.ShopkeeperRepository.GetByIdAsync(store.ShopkeeperId).Result;
+            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var isOwner = await UserValidate.IsOwner(userEmail, shopkeeper);
+
+            if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
+            && User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "Admin"
+            && !isOwner)
+            {
+                return Unauthorized();
+            }
+
             if (createDto.File != null)
             {
                 store = await UnitOfWork.StoreRepository.AddWithImageAsync(store, createDto.File);
@@ -137,8 +148,9 @@ namespace BazarCarioca.WebAPI.Controllers
         {
             var store = await UnitOfWork.StoreRepository.GetByIdAsync(Id);
 
+            var shopkeeper = UnitOfWork.ShopkeeperRepository.GetByIdAsync(store.ShopkeeperId).Result;
             var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-            var isOwner = await UserValidate.IsOwner(userEmail, store);
+            var isOwner = await UserValidate.IsOwner(userEmail, shopkeeper);
 
             if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
             && User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "Admin"

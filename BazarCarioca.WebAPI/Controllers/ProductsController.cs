@@ -78,6 +78,17 @@ namespace BazarCarioca.WebAPI.Controllers
 
             var product = Mapper.Map<Product>(createDto);
 
+            var productType = UnitOfWork.ProductTypeRepository.GetByIdAsync(product.ProductTypeId).Result;
+            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var isOwner = await UserValidate.IsOwner(userEmail, productType);
+
+            if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
+            && User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "Admin"
+            && !isOwner)
+            {
+                return Unauthorized();
+            }
+
             if (createDto.File != null)
             {
                 product = await UnitOfWork.ProductRepository.AddWithImageAsync(product, createDto.File);
@@ -101,15 +112,17 @@ namespace BazarCarioca.WebAPI.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Patch(int Id, [FromForm] PatchRequestDTO requestDto)
         {
+            var product = await UnitOfWork.ProductRepository.GetByIdAsync(Id);
+
+            var productType = UnitOfWork.ProductTypeRepository.GetByIdAsync(product.ProductTypeId).Result;
             var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-            var product = await UnitOfWork.ProductTypeRepository.GetByIdAsync(Id);
-            var isOwner = await UserValidate.IsOwner(userEmail, product);
+            var isOwner = await UserValidate.IsOwner(userEmail, productType);
 
             if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
             && User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "Admin"
             && !isOwner)
             {
-                return Unauthorized("Você não tem autorização para alterar esta loja.");
+                return Unauthorized();
             }
 
             if (requestDto == null)
@@ -128,15 +141,17 @@ namespace BazarCarioca.WebAPI.Controllers
         [Route("{Id:int}")]
         public async Task<IActionResult> Delete(int Id)
         {
-            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
             var product = await UnitOfWork.ProductRepository.GetByIdAsync(Id);
-            var isOwner = await UserValidate.IsOwner(userEmail, product);
+
+            var productType = UnitOfWork.ProductTypeRepository.GetByIdAsync(product.ProductTypeId).Result;
+            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var isOwner = await UserValidate.IsOwner(userEmail, productType);
 
             if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
             && User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "Admin"
             && !isOwner)
             {
-                return Unauthorized("Você não tem autorização para alterar esta loja.");
+                return Unauthorized();
             }
 
             if (product == null)

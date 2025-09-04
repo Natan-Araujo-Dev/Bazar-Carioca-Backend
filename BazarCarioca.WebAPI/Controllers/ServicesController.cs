@@ -66,10 +66,22 @@ namespace BazarCarioca.WebAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] ServiceDTO createDto)
         {
+
             if (createDto == null)
                 return BadRequest("Nenhuma informação foi passada na requisição.");
 
             var service = Mapper.Map<Service>(createDto);
+
+            var store = UnitOfWork.StoreRepository.GetByIdAsync(service.StoreId).Result;
+            var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var isOwner = await UserValidate.IsOwner(userEmail, store);
+
+            if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
+            && User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "Admin"
+            && !isOwner)
+            {
+                return Unauthorized();
+            }
 
             await UnitOfWork.ServiceRepository.AddAsync(service);
             await UnitOfWork.CommitAsync();
@@ -88,8 +100,9 @@ namespace BazarCarioca.WebAPI.Controllers
         {
             var service = await UnitOfWork.ServiceRepository.GetByIdAsync(Id);
 
+            var store = UnitOfWork.StoreRepository.GetByIdAsync(service.StoreId).Result;
             var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-            var isOwner = await UserValidate.IsOwner(userEmail, service);
+            var isOwner = await UserValidate.IsOwner(userEmail, store);
 
             if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
             && User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "Admin"
@@ -121,8 +134,9 @@ namespace BazarCarioca.WebAPI.Controllers
         {
             var service = await UnitOfWork.ServiceRepository.GetByIdAsync(Id);
 
+            var store = UnitOfWork.StoreRepository.GetByIdAsync(service.StoreId).Result;
             var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-            var isOwner = await UserValidate.IsOwner(userEmail, service);
+            var isOwner = await UserValidate.IsOwner(userEmail, store);
 
             if (User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "SuperAdmin"
             && User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value != "Admin"
